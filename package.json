@@ -1,0 +1,16 @@
+{
+  "name": "curve25519",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "gypkg build curve25519.gyp",
+    "test": "npm run build && ./out/Release/curve25519-test"
+  },
+  "keywords": [],
+  "author": "Fedor Indutny <fedor@indutny.com> (http://darksi.de/)",
+  "license": "MIT",
+  "dependencies": {
+    "gypkg": "^2.7.7"
+  }
+}
