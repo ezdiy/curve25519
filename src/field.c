@@ -359,8 +359,6 @@ static int curve25519_num__is_odd(curve25519_num_t* num) {
   return num->limbs[0] & 1;
 }
 
-#include <stdio.h>
-
 
 void curve25519_num_inv(curve25519_num_t* out) {
   curve25519_num_t a;
