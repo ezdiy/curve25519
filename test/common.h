@@ -13,7 +13,7 @@
 #include "mini/test.h"
 
 typedef struct test_field_vector_s test_field_vector_t;
-typedef struct test_field_inv_vector_s test_field_inv_vector_t;
+typedef struct test_field_single_vector_s test_field_single_vector_t;
 typedef struct test_point_s test_point_t;
 typedef struct test_point_dbl_vector_s test_point_dbl_vector_t;
 typedef struct test_point_diff_add_vector_s test_point_diff_add_vector_t;
@@ -25,7 +25,7 @@ struct test_field_vector_s {
   const char* description;
 };
 
-struct test_field_inv_vector_s {
+struct test_field_single_vector_s {
   uint8_t num[32];
   uint8_t expected[32];
   const char* description;

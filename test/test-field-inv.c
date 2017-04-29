@@ -1,6 +1,6 @@
 #include "test/common.h"
 
-static test_field_inv_vector_t inv_vectors[] = {
+static test_field_single_vector_t inv_vectors[] = {
   {
     .num = {
       0xbf, 0xa8, 0x63, 0x8b, 0x3e, 0xf7, 0x8a, 0xd7,

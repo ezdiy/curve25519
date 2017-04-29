@@ -341,7 +341,196 @@ void curve25519_num_mul(curve25519_num_t* out,
 
 /* TODO(indutny): implement me and write tests */
 void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num) {
-  curve25519_num_mul(out, num, num);
+  uint64_t* olimbs = out->limbs;
+  const uint64_t* nlimbs = num->limbs;
+
+  __asm__ __volatile__ (
+      /* tmp = (r15, r14, r13) = (t3, t2, t1, t0) */
+      /* output = (rcx, r12, r11, r10, r9, r8) = (oc1, oc0, o3, o2, o1, o0) */
+      /* a = (a3, a2, a1, a0) = num */
+
+      /* (o2, o1, o0) = a0 * b0 + 38 * (2 * a1 * a3 + a2 * a2) */
+
+      /* (o1, o0) = a1 * a3 */
+      "movq 8(%1), %%rax\n"
+      "mulq 24(%1)\n"
+      "movq %%rax, %%r8\n"
+      "movq %%rdx, %%r9\n"
+
+      /* (o2, o1, o0) *= 2 */
+      "xorq %%r10, %%r10\n"
+      "shldq $1, %%r9, %%r10\n"
+      "shldq $1, %%r8, %%r9\n"
+      "shlq $1, %%r8\n"
+
+      /* (o2, o1, o0) += a2 * a2 */
+      "movq 16(%1), %%rax\n"
+      "mulq %%rax\n"
+      "addq %%rax, %%r8\n"
+      "adcq %%rdx, %%r9\n"
+      "adcq $0, %%r10\n"
+
+      /* (o2, o1, o0) *= 38 */
+      "movq $38, %%rax\n"
+      "mulq %%r10\n"
+      "movq %%rax, %%r10\n"
+
+      "movq $38, %%rax\n"
+      "mulq %%r9\n"
+      "movq %%rax, %%r9\n"
+      "addq %%rdx, %%r10\n"
+
+      "movq $38, %%rax\n"
+      "mulq %%r8\n"
+      "movq %%rax, %%r8\n"
+      "addq %%rdx, %%r9\n"
+      "adcq $0, %%r10\n"
+
+      /* (o2, o1, o0) += a0 * a0 */
+      "movq 0(%1), %%rax\n"
+      "mulq %%rax\n"
+      "addq %%rax, %%r8\n"
+      "adcq %%rdx, %%r9\n"
+      "adcq $0, %%r10\n"
+
+      /* (t2, t1, t0) = 2 * (a0 * a1 + 38 * a2 * a3) */
+
+      /* (t1, t0) = a2 * a3 */
+      "movq 16(%1), %%rax\n"
+      "mulq 24(%1)\n"
+      "movq %%rax, %%r13\n"
+      "movq %%rdx, %%r14\n"
+
+      /* (t2, t1, t0) *= 38 */
+      "movq $38, %%rax\n"
+      "mulq %%r14\n"
+      "movq %%rax, %%r14\n"
+      "movq %%rdx, %%r15\n"
+
+      "movq $38, %%rax\n"
+      "mulq %%r13\n"
+      "movq %%rax, %%r13\n"
+      "addq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (t2, t1, t0) += a0 * a1 */
+      "movq 0(%1), %%rax\n"
+      "mulq 8(%1)\n"
+      "addq %%rax, %%r13\n"
+      "adcq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (t2, t1, t0) *= 2 */
+      "shldq $1, %%r14, %%r15\n"
+      "shldq $1, %%r13, %%r14\n"
+      "shlq $1, %%r13\n"
+
+      /* (o3, o2, o1) += (t2, t1, t0) */
+      "xorq %%r11, %%r11\n"
+      "addq %%r13, %%r9\n"
+      "adcq %%r14, %%r10\n"
+      "adcq %%r15, %%r11\n"
+
+      /* (t2, t1, t0) = a1 * a1 + 2 * (a2 * a0 + 19 * a3 * b3) */
+
+      /* (t1, t0) = a3 * b3 */
+      "movq 24(%1), %%rax\n"
+      "mulq %%rax\n"
+      "movq %%rax, %%r13\n"
+      "movq %%rdx, %%r14\n"
+
+      /* (t2, t1, t0) *= 19 */
+      "movq $19, %%rax\n"
+      "mulq %%r14\n"
+      "movq %%rax, %%r14\n"
+      "movq %%rdx, %%r15\n"
+
+      "movq $19, %%rax\n"
+      "mulq %%r13\n"
+      "movq %%rax, %%r13\n"
+      "addq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (t2, t1, t0) += a0 * a2 */
+      "movq 0(%1), %%rax\n"
+      "mulq 16(%1)\n"
+      "addq %%rax, %%r13\n"
+      "adcq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (t2, t1, t0) *= 2 */
+      "shldq $1, %%r14, %%r15\n"
+      "shldq $1, %%r13, %%r14\n"
+      "shlq $1, %%r13\n"
+
+      /* (t2, t1, t0) += a1 * b1 */
+      "movq 8(%1), %%rax\n"
+      "mulq %%rax\n"
+      "addq %%rax, %%r13\n"
+      "adcq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (oc0, o3, o2) += (t2, t1, t0) */
+      "xorq %%r12, %%r12\n"
+      "addq %%r13, %%r10\n"
+      "adcq %%r14, %%r11\n"
+      "adcq %%r15, %%r12\n"
+
+      /* (t2, t1, t0) = 2 * (a0 * a3 + a1 * a2) */
+
+      /* (t1, t0) = a0 * a3 */
+      "movq 0(%1), %%rax\n"
+      "mulq 24(%1)\n"
+      "movq %%rax, %%r13\n"
+      "movq %%rdx, %%r14\n"
+
+      /* (t2, t1, t0) += a1 * a2 */
+      "xorq %%r15, %%r15\n"
+      "movq 8(%1), %%rax\n"
+      "mulq 16(%1)\n"
+      "addq %%rax, %%r13\n"
+      "adcq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (t2, t1, t0) *= 2 */
+      "shldq $1, %%r14, %%r15\n"
+      "shldq $1, %%r13, %%r14\n"
+      "shlq $1, %%r13\n"
+
+      /* (oc1, oc0, o3) += (t2, t1, t0) */
+      "xorq %%rcx, %%rcx\n"
+      "addq %%r13, %%r11\n"
+      "adcq %%r14, %%r12\n"
+      "adcq %%r15, %%rcx\n"
+
+      /* (t2, t1, t0) = (oc1, oc0) * 38 */
+      "movq $38, %%rax\n"
+      "mulq %%rcx\n"
+      "movq %%rax, %%r14\n"
+      "movq %%rdx, %%r15\n"
+
+      "movq $38, %%rax\n"
+      "mulq %%r12\n"
+      "movq %%rax, %%r13\n"
+      "addq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (o3, o2, o1, o0) += (t2, t1, t0) */
+      "addq %%r13, %%r8\n"
+      "adcq %%r14, %%r9\n"
+      "adcq %%r15, %%r10\n"
+      "adcq $0, %%r11\n"
+
+      /* store limbs */
+      "movq %%r8, 0(%0)\n"
+      "movq %%r9, 8(%0)\n"
+      "movq %%r10, 16(%0)\n"
+      "movq %%r11, 24(%0)\n"
+  : "+r" (olimbs)
+  : "r" (nlimbs)
+  : "%rax", "%rcx", "%rdx",
+    "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15",
+    "cc", "memory");
 }
 
 

@@ -49,6 +49,7 @@
       "test/test-field-add.c",
       "test/test-field-sub.c",
       "test/test-field-mul.c",
+      "test/test-field-sqr.c",
       "test/test-field-combined.c",
       "test/test-field-inv.c",
       "test/test-point-dbl.c",

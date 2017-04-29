@@ -5,6 +5,7 @@
     V(field_add)                                                              \
     V(field_sub)                                                              \
     V(field_mul)                                                              \
+    V(field_sqr)                                                              \
     V(field_combined)                                                         \
     V(field_inv)                                                              \
     V(point_dbl)                                                              \
