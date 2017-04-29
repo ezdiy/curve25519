@@ -20,6 +20,7 @@ int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b);
 
 /* Helpers */
 
+void curve25519_num_copy(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num);
 void curve25519_num_from_bin(curve25519_num_t* out, uint8_t bin[32]);
 

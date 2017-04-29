@@ -1,4 +1,4 @@
-#include <string.h>
+#include <string.h>  /* memset */
 
 #include "include/curve25519.h"
 
@@ -328,6 +328,11 @@ void curve25519_num_normalize(curve25519_num_t* out) {
     return;
 
   curve25519_num_sub(out, &kPrime);
+}
+
+
+void curve25519_num_copy(curve25519_num_t* out, const curve25519_num_t* num) {
+  memcpy(out->limbs, num->limbs, sizeof(num->limbs));
 }
 
 
