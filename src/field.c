@@ -331,6 +331,12 @@ void curve25519_num_mul(curve25519_num_t* out,
 }
 
 
+/* TODO(indutny): implement me and write tests */
+void curve25519_num_sqr(curve25519_num_t* out) {
+  curve25519_num_mul(out, out);
+}
+
+
 static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
   const uint64_t* nlimbs = num->limbs;
 
