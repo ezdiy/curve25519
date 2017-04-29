@@ -123,8 +123,8 @@ void curve25519_num_mul(curve25519_num_t* out,
   __asm__ __volatile__ (
       /* tmp = (r15, r14, r13) = (t3, t2, t1, t0) */
       /* output = (rcx, r12, r11, r10, r9, r8) = (oc1, oc0, o3, o2, o1, o0) */
-      /* a = (a3, a2, a1, a0) = out */
-      /* b = (b3, b2, b1, b0) = num */
+      /* a = (a3, a2, a1, a0) */
+      /* b = (b3, b2, b1, b0) */
 
       /* (o2, o1, o0) = a0 * b0 + 38 * (a1 * b3 + a2 * b2 + a3 * b1) */
 
