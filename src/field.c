@@ -97,37 +97,35 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
 
 
 void curve25519_num_mul(curve25519_num_t* out,
-                        const curve25519_num_t* a,
-                        const curve25519_num_t* b) {
+                        const curve25519_num_t* num) {
   uint64_t* olimbs = out->limbs;
-  const uint64_t* alimbs = a->limbs;
-  const uint64_t* blimbs = b->limbs;
+  const uint64_t* nlimbs = num->limbs;
 
   __asm__ volatile (
       /* tmp = (r15, r14, r13) = (t3, t2, t1, t0) */
       /* output = (rcx, r12, r11, r10, r9, r8) = (oc1, oc0, o3, o2, o1, o0) */
-      /* a = (a3, a2, a1, a0) */
-      /* b = (b3, b2, b1, b0) */
+      /* a = (a3, a2, a1, a0) = out */
+      /* b = (b3, b2, b1, b0) = num */
 
       /* (o2, o1, o0) = a0 * b0 + 38 * (a1 * b3 + a2 * b2 + a3 * b1) */
 
       /* (o1, o0) = a1 * b3 */
-      "movq 8(%1), %%rax\n"
-      "mulq 24(%2)\n"
+      "movq 8(%0), %%rax\n"
+      "mulq 24(%1)\n"
       "movq %%rax, %%r8\n"
       "movq %%rdx, %%r9\n"
 
       /* (o2, o1, o0) += a2 * b2 */
       "xorq %%r10, %%r10\n"
-      "movq 16(%1), %%rax\n"
-      "mulq 16(%2)\n"
+      "movq 16(%0), %%rax\n"
+      "mulq 16(%1)\n"
       "addq %%rax, %%r8\n"
       "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
 
       /* (o2, o1, o0) += a3 * b1 */
-      "movq 24(%1), %%rax\n"
-      "mulq 8(%2)\n"
+      "movq 24(%0), %%rax\n"
+      "mulq 8(%1)\n"
       "addq %%rax, %%r8\n"
       "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
@@ -149,24 +147,24 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r10\n"
 
       /* (o2, o1, o0) += a0 * b0 */
-      "movq 0(%1), %%rax\n"
-      "mulq 0(%2)\n"
-      "movq %%rax, %%r8\n"
-      "addq %%rdx, %%r9\n"
+      "movq 0(%0), %%rax\n"
+      "mulq 0(%1)\n"
+      "addq %%rax, %%r8\n"
+      "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
 
       /* (t2, t1, t0) = a0 * b1 + a1 * b0 + 38 * (a2 * b3 + a3 * b2) */
 
-      /* (t1, t0) += a2 * b3 */
-      "movq 16(%1), %%rax\n"
-      "mulq 24(%2)\n"
+      /* (t1, t0) = a2 * b3 */
+      "movq 16(%0), %%rax\n"
+      "mulq 24(%1)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
       /* (t2, t1, t0) += a3 * b2 */
       "xorq %%r15, %%r15\n"
-      "movq 24(%1), %%rax\n"
-      "mulq 16(%2)\n"
+      "movq 24(%0), %%rax\n"
+      "mulq 16(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -188,15 +186,15 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a0 * b1 */
-      "movq 0(%1), %%rax\n"
-      "mulq 8(%2)\n"
+      "movq 0(%0), %%rax\n"
+      "mulq 8(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a1 * b0 */
-      "movq 8(%1), %%rax\n"
-      "mulq 0(%2)\n"
+      "movq 8(%0), %%rax\n"
+      "mulq 0(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -211,17 +209,16 @@ void curve25519_num_mul(curve25519_num_t* out,
        *                38 * a3 * b3 */
 
       /* (t1, t0) = a3 * b3 */
-      "movq 24(%1), %%rax\n"
-      "mulq 24(%2)\n"
+      "movq 24(%0), %%rax\n"
+      "mulq 24(%1)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
       /* (t2, t1, t0) *= 38 */
-      "xorq %%r15, %%r15\n"
       "movq $38, %%rax\n"
       "mulq %%r14\n"
       "movq %%rax, %%r14\n"
-      "adcq %%rdx, %%r15\n"
+      "movq %%rdx, %%r15\n"
 
       "movq $38, %%rax\n"
       "mulq %%r13\n"
@@ -230,22 +227,22 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a0 * b2 */
-      "movq 0(%1), %%rax\n"
-      "mulq 16(%2)\n"
+      "movq 0(%0), %%rax\n"
+      "mulq 16(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a1 * b1 */
-      "movq 8(%1), %%rax\n"
-      "mulq 8(%2)\n"
+      "movq 8(%0), %%rax\n"
+      "mulq 8(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a2 * b0 */
-      "movq 16(%1), %%rax\n"
-      "mulq 0(%2)\n"
+      "movq 16(%0), %%rax\n"
+      "mulq 0(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -259,31 +256,29 @@ void curve25519_num_mul(curve25519_num_t* out,
       /* (t2, t1, t0) = a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0 */
 
       /* (t1, t0) = a0 * b3 */
-      "movq 0(%1), %%rax\n"
-      "mulq 24(%2)\n"
+      "movq 0(%0), %%rax\n"
+      "mulq 24(%1)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
       /* (t2, t1, t0) += a1 * b2 */
       "xorq %%r15, %%r15\n"
-      "movq 8(%1), %%rax\n"
-      "mulq 16(%2)\n"
+      "movq 8(%0), %%rax\n"
+      "mulq 16(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a2 * b1 */
-      "xorq %%r15, %%r15\n"
-      "movq 16(%1), %%rax\n"
-      "mulq 8(%2)\n"
+      "movq 16(%0), %%rax\n"
+      "mulq 8(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a3 * b0 */
-      "xorq %%r15, %%r15\n"
-      "movq 24(%1), %%rax\n"
-      "mulq 0(%2)\n"
+      "movq 24(%0), %%rax\n"
+      "mulq 0(%1)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -294,9 +289,31 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq %%r14, %%r12\n"
       "adcq %%r15, %%rcx\n"
 
-      "int3\n"
+      /* (t2, t1, t0) = (oc1, oc0) * 38 */
+      "movq $38, %%rax\n"
+      "mulq %%rcx\n"
+      "movq %%rax, %%r14\n"
+      "movq %%rdx, %%r15\n"
+
+      "movq $38, %%rax\n"
+      "mulq %%r12\n"
+      "movq %%rax, %%r13\n"
+      "addq %%rdx, %%r14\n"
+      "adcq $0, %%r15\n"
+
+      /* (o3, o2, o1, o0) += (t2, t1, t0) */
+      "addq %%r13, %%r8\n"
+      "adcq %%r14, %%r9\n"
+      "adcq %%r15, %%r10\n"
+      "adcq $0, %%r11\n"
+
+      /* store limbs */
+      "movq %%r8, 0(%0)\n"
+      "movq %%r9, 8(%0)\n"
+      "movq %%r10, 16(%0)\n"
+      "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (alimbs), "r" (blimbs)
+  : "r" (nlimbs)
   : "%rax", "%rcx", "%rdx",
     "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15",
     "cc", "memory");

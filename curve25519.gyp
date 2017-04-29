@@ -47,6 +47,7 @@
       "test/main.c",
       "test/test-field-add.c",
       "test/test-field-sub.c",
+      "test/test-field-mul.c",
     ],
   }],
 }
