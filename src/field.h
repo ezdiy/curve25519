@@ -15,10 +15,12 @@ void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* a,
                         const curve25519_num_t* b);
 void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* a,
                         const curve25519_num_t* b);
+void curve25519_num_mul(curve25519_num_t* out, const curve25519_num_t* a,
+                        const curve25519_num_t* b);
 
-void curve25519_num_mul(curve25519_num_t* out, const curve25519_num_t* num);
-void curve25519_num_sqr(curve25519_num_t* out);
-void curve25519_num_inv(curve25519_num_t* out);
+/* NOTE: `out` can be the same as `num` */
+void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num);
+void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num);
 
 /* Non constant-time methods */
 void curve25519_num_normalize(curve25519_num_t* out);

@@ -55,7 +55,7 @@ TEST_IMPL(field_mul) {
 
     curve25519_num_from_bin(&a, mul_vectors[i].a);
     curve25519_num_from_bin(&b, mul_vectors[i].b);
-    curve25519_num_mul(&a, &b);
+    curve25519_num_mul(&a, &a, &b);
     curve25519_num_to_bin(bin, &a);
 
     check_equal_data(bin, mul_vectors[i].expected, sizeof(bin),

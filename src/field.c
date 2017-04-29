@@ -114,9 +114,11 @@ void curve25519_num_sub(curve25519_num_t* out,
 
 
 void curve25519_num_mul(curve25519_num_t* out,
-                        const curve25519_num_t* num) {
+                        const curve25519_num_t* a,
+                        const curve25519_num_t* b) {
   uint64_t* olimbs = out->limbs;
-  const uint64_t* nlimbs = num->limbs;
+  const uint64_t* alimbs = a->limbs;
+  const uint64_t* blimbs = b->limbs;
 
   __asm__ __volatile__ (
       /* tmp = (r15, r14, r13) = (t3, t2, t1, t0) */
@@ -127,22 +129,22 @@ void curve25519_num_mul(curve25519_num_t* out,
       /* (o2, o1, o0) = a0 * b0 + 38 * (a1 * b3 + a2 * b2 + a3 * b1) */
 
       /* (o1, o0) = a1 * b3 */
-      "movq 8(%0), %%rax\n"
-      "mulq 24(%1)\n"
+      "movq 8(%1), %%rax\n"
+      "mulq 24(%2)\n"
       "movq %%rax, %%r8\n"
       "movq %%rdx, %%r9\n"
 
       /* (o2, o1, o0) += a2 * b2 */
       "xorq %%r10, %%r10\n"
-      "movq 16(%0), %%rax\n"
-      "mulq 16(%1)\n"
+      "movq 16(%1), %%rax\n"
+      "mulq 16(%2)\n"
       "addq %%rax, %%r8\n"
       "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
 
       /* (o2, o1, o0) += a3 * b1 */
-      "movq 24(%0), %%rax\n"
-      "mulq 8(%1)\n"
+      "movq 24(%1), %%rax\n"
+      "mulq 8(%2)\n"
       "addq %%rax, %%r8\n"
       "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
@@ -164,8 +166,8 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r10\n"
 
       /* (o2, o1, o0) += a0 * b0 */
-      "movq 0(%0), %%rax\n"
-      "mulq 0(%1)\n"
+      "movq 0(%1), %%rax\n"
+      "mulq 0(%2)\n"
       "addq %%rax, %%r8\n"
       "adcq %%rdx, %%r9\n"
       "adcq $0, %%r10\n"
@@ -173,15 +175,15 @@ void curve25519_num_mul(curve25519_num_t* out,
       /* (t2, t1, t0) = a0 * b1 + a1 * b0 + 38 * (a2 * b3 + a3 * b2) */
 
       /* (t1, t0) = a2 * b3 */
-      "movq 16(%0), %%rax\n"
-      "mulq 24(%1)\n"
+      "movq 16(%1), %%rax\n"
+      "mulq 24(%2)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
       /* (t2, t1, t0) += a3 * b2 */
       "xorq %%r15, %%r15\n"
-      "movq 24(%0), %%rax\n"
-      "mulq 16(%1)\n"
+      "movq 24(%1), %%rax\n"
+      "mulq 16(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -203,15 +205,15 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a0 * b1 */
-      "movq 0(%0), %%rax\n"
-      "mulq 8(%1)\n"
+      "movq 0(%1), %%rax\n"
+      "mulq 8(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a1 * b0 */
-      "movq 8(%0), %%rax\n"
-      "mulq 0(%1)\n"
+      "movq 8(%1), %%rax\n"
+      "mulq 0(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -226,8 +228,8 @@ void curve25519_num_mul(curve25519_num_t* out,
        *                38 * a3 * b3 */
 
       /* (t1, t0) = a3 * b3 */
-      "movq 24(%0), %%rax\n"
-      "mulq 24(%1)\n"
+      "movq 24(%1), %%rax\n"
+      "mulq 24(%2)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
@@ -244,22 +246,22 @@ void curve25519_num_mul(curve25519_num_t* out,
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a0 * b2 */
-      "movq 0(%0), %%rax\n"
-      "mulq 16(%1)\n"
+      "movq 0(%1), %%rax\n"
+      "mulq 16(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a1 * b1 */
-      "movq 8(%0), %%rax\n"
-      "mulq 8(%1)\n"
+      "movq 8(%1), %%rax\n"
+      "mulq 8(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a2 * b0 */
-      "movq 16(%0), %%rax\n"
-      "mulq 0(%1)\n"
+      "movq 16(%1), %%rax\n"
+      "mulq 0(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -273,29 +275,29 @@ void curve25519_num_mul(curve25519_num_t* out,
       /* (t2, t1, t0) = a0 * b3 + a1 * b2 + a2 * b1 + a3 * b0 */
 
       /* (t1, t0) = a0 * b3 */
-      "movq 0(%0), %%rax\n"
-      "mulq 24(%1)\n"
+      "movq 0(%1), %%rax\n"
+      "mulq 24(%2)\n"
       "movq %%rax, %%r13\n"
       "movq %%rdx, %%r14\n"
 
       /* (t2, t1, t0) += a1 * b2 */
       "xorq %%r15, %%r15\n"
-      "movq 8(%0), %%rax\n"
-      "mulq 16(%1)\n"
+      "movq 8(%1), %%rax\n"
+      "mulq 16(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a2 * b1 */
-      "movq 16(%0), %%rax\n"
-      "mulq 8(%1)\n"
+      "movq 16(%1), %%rax\n"
+      "mulq 8(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
 
       /* (t2, t1, t0) += a3 * b0 */
-      "movq 24(%0), %%rax\n"
-      "mulq 0(%1)\n"
+      "movq 24(%1), %%rax\n"
+      "mulq 0(%2)\n"
       "addq %%rax, %%r13\n"
       "adcq %%rdx, %%r14\n"
       "adcq $0, %%r15\n"
@@ -330,7 +332,7 @@ void curve25519_num_mul(curve25519_num_t* out,
       "movq %%r10, 16(%0)\n"
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (nlimbs)
+  : "r" (alimbs), "r" (blimbs)
   : "%rax", "%rcx", "%rdx",
     "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15",
     "cc", "memory");
@@ -338,8 +340,8 @@ void curve25519_num_mul(curve25519_num_t* out,
 
 
 /* TODO(indutny): implement me and write tests */
-void curve25519_num_sqr(curve25519_num_t* out) {
-  curve25519_num_mul(out, out);
+void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num) {
+  curve25519_num_mul(out, num, num);
 }
 
 
@@ -438,17 +440,17 @@ static void curve25519_num_fast_sub(curve25519_num_t* out,
 }
 
 
-void curve25519_num_inv(curve25519_num_t* out) {
+void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num) {
   curve25519_num_t a;
   curve25519_num_t b;
   curve25519_num_t t0;
   curve25519_num_t t1;
 
   /* Extended Euclidean Algorithm */
-  curve25519_num_normalize(out);
+  curve25519_num_normalize(num);
 
   curve25519_num_copy(&a, &kPrime);
-  curve25519_num_copy(&b, out);
+  curve25519_num_copy(&b, num);
   curve25519_num_copy(&t0, &kZero);
   curve25519_num_copy(&t1, &kOne);
 

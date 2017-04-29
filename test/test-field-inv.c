@@ -58,7 +58,7 @@ TEST_IMPL(field_inv) {
 
     curve25519_num_from_bin(&original, inv_vectors[i].num);
     curve25519_num_copy(&num, &original);
-    curve25519_num_inv(&num);
+    curve25519_num_inv(&num, &num);
     curve25519_num_to_bin(bin, &num);
 
     check_equal_data(bin, inv_vectors[i].expected, sizeof(bin),
@@ -66,8 +66,8 @@ TEST_IMPL(field_inv) {
 
     /* Second inverse */
     curve25519_num_copy(&num, &original);
-    curve25519_num_inv(&num);
-    curve25519_num_inv(&num);
+    curve25519_num_inv(&num, &num);
+    curve25519_num_inv(&num, &num);
     curve25519_num_to_bin(bin, &num);
 
     check_equal_data(bin, inv_vectors[i].num, sizeof(bin),
