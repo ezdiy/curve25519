@@ -332,10 +332,30 @@ void curve25519_num_mul(curve25519_num_t* out,
 
 
 static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
-  num->limbs[0] = (num->limbs[1] << (64 - shift)) | (num->limbs[0] >> shift);
-  num->limbs[1] = (num->limbs[2] << (64 - shift)) | (num->limbs[1] >> shift);
-  num->limbs[2] = (num->limbs[3] << (64 - shift)) | (num->limbs[2] >> shift);
-  num->limbs[3] >>= shift;
+  const uint64_t* nlimbs = num->limbs;
+
+  __asm__ __volatile__ (
+      /* Load all limbs */
+      "movq 0(%0), %%r8\n"
+      "movq 8(%0), %%r9\n"
+      "movq 16(%0), %%r10\n"
+      "movq 24(%0), %%r11\n"
+
+      /* Shift */
+      "movb %1, %%cl\n"
+      "shrdq %%cl, %%r9, %%r8\n"
+      "shrdq %%cl, %%r10, %%r9\n"
+      "shrdq %%cl, %%r11, %%r10\n"
+      "shrq %%cl, %%r11\n"
+
+      /* Store all limbs */
+      "movq %%r8, 0(%0)\n"
+      "movq %%r9, 8(%0)\n"
+      "movq %%r10, 16(%0)\n"
+      "movq %%r11, 24(%0)\n"
+  : "+r" (nlimbs)
+  : "rm" (shift)
+  : "cc", "r8", "r9", "r10", "r11", "cl", "memory");
 }
 
 
@@ -377,6 +397,35 @@ static void curve25519_num__shift_both(curve25519_num_t* num,
 }
 
 
+static int curve25519_num__is_zero(const curve25519_num_t* num) {
+  return (num->limbs[0] | num->limbs[1] | num->limbs[2] | num->limbs[3]) == 0;
+}
+
+
+/* NOTE: `out` muste be bigger or equal than num */
+void curve25519_num_fast_sub(curve25519_num_t* out,
+                             const curve25519_num_t* num) {
+  uint64_t* olimbs = out->limbs;
+  const uint64_t* nlimbs = num->limbs;
+
+  __asm__ __volatile__ (
+      /* load all limbs */
+      "movq 0(%1), %%r8\n"
+      "movq 8(%1), %%r9\n"
+      "movq 16(%1), %%r10\n"
+      "movq 24(%1), %%r11\n"
+
+      /* sub limbs */
+      "subq %%r8, 0(%0)\n"
+      "sbbq %%r9, 8(%0)\n"
+      "sbbq %%r10, 16(%0)\n"
+      "sbbq %%r11, 24(%0)\n"
+  : "+r" (olimbs)
+  : "r" (nlimbs)
+  : "%r8", "%r9", "%r10", "%r11", "cc", "memory");
+}
+
+
 void curve25519_num_inv(curve25519_num_t* out) {
   curve25519_num_t a;
   curve25519_num_t b;
@@ -391,7 +440,7 @@ void curve25519_num_inv(curve25519_num_t* out) {
   curve25519_num_copy(&t0, &kZero);
   curve25519_num_copy(&t1, &kOne);
 
-  if (curve25519_num_cmp(&b, &kOne) <= 0)
+  if (curve25519_num__is_zero(&b))
     return curve25519_num_copy(out, &t1);
 
   for (;;) {
@@ -399,18 +448,18 @@ void curve25519_num_inv(curve25519_num_t* out) {
     curve25519_num__shift_both(&b, &t1);
 
     if (curve25519_num_cmp(&a, &b) >= 0) {
-      curve25519_num_sub(&a, &b);
+      curve25519_num_fast_sub(&a, &b);
       curve25519_num_sub(&t0, &t1);
 
-      if (curve25519_num_cmp(&a, &kOne) <= 0)
+      if (curve25519_num__is_zero(&a))
         return curve25519_num_copy(out, &t1);
     } else {
-      curve25519_num_sub(&b, &a);
+      curve25519_num_fast_sub(&b, &a);
       curve25519_num_sub(&t1, &t0);
 
       /* XXX(indutny): can it ever get here? */
       /* TODO(indutny): write a test case */
-      if (curve25519_num_cmp(&b, &kOne) <= 0)
+      if (curve25519_num__is_zero(&b))
         return curve25519_num_copy(out, &t0);
     }
   }
