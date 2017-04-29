@@ -27,7 +27,7 @@ void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
   uint64_t* olimbs = out->limbs;
   const uint64_t* nlimbs = num->limbs;
 
-  __asm__ volatile (
+  __asm__ __volatile__ (
       /* load all limbs */
       "movq 0(%0), %%r8\n"
       "movq 8(%0), %%r9\n"
@@ -69,7 +69,7 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
   uint64_t* olimbs = out->limbs;
   const uint64_t* nlimbs = num->limbs;
 
-  __asm__ volatile (
+  __asm__ __volatile__ (
       /* load all limbs */
       "movq 0(%0), %%r8\n"
       "movq 8(%0), %%r9\n"
@@ -112,7 +112,7 @@ void curve25519_num_mul(curve25519_num_t* out,
   uint64_t* olimbs = out->limbs;
   const uint64_t* nlimbs = num->limbs;
 
-  __asm__ volatile (
+  __asm__ __volatile__ (
       /* tmp = (r15, r14, r13) = (t3, t2, t1, t0) */
       /* output = (rcx, r12, r11, r10, r9, r8) = (oc1, oc0, o3, o2, o1, o0) */
       /* a = (a3, a2, a1, a0) = out */
