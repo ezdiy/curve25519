@@ -5,8 +5,19 @@
 
 #include "curve25519.h"
 
+#include "src/common.h"
+
 #include "test-list.h"
 #include "mini/test.h"
+
+typedef struct test_field_vector_s test_field_vector_t;
+
+struct test_field_vector_s {
+  uint8_t a[32];
+  uint8_t b[32];
+  uint8_t expected[32];
+  const char* description;
+};
 
 static void check_equal_data(uint8_t* actual, uint8_t* expected, size_t size,
                              const char* msg) {

@@ -2,6 +2,8 @@
 
 #include "include/curve25519.h"
 
+#include "src/common.h"
+
 static const curve25519_num_t kPrime = {
   .limbs = {
     0xffffffffffffffedLLU,
@@ -331,7 +333,7 @@ void curve25519_num_normalize(curve25519_num_t* out) {
 
 int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b) {
   int i;
-  for (i = 4; i >= 0; i--)
+  for (i = (int) ARRAY_SIZE(a->limbs) - 1; i >= 0; i--)
     if (a->limbs[i] > b->limbs[i])
       return 1;
     else if (a->limbs[i] < b->limbs[i])
@@ -348,7 +350,7 @@ void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num) {
 
   /* TODO(indutny): which endianess is needed? */
   off = 0;
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < ARRAY_SIZE(num->limbs); i++) {
     uint64_t limb;
     unsigned int j;
 
