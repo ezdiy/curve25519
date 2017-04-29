@@ -331,8 +331,85 @@ void curve25519_num_mul(curve25519_num_t* out,
 }
 
 
-void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num) {
+static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
+  num->limbs[0] = (num->limbs[1] << (64 - shift)) | (num->limbs[0] >> shift);
+  num->limbs[1] = (num->limbs[2] << (64 - shift)) | (num->limbs[1] >> shift);
+  num->limbs[2] = (num->limbs[3] << (64 - shift)) | (num->limbs[2] >> shift);
+  num->limbs[3] >>= shift;
+}
+
+
+static uint8_t curve25519_num__full_shr(curve25519_num_t* num) {
+  uint64_t out;
+  const uint64_t* nlimbs = num->limbs;
+
+  __asm__ __volatile__ (
+      "tzcnt 0(%1), %0\n"
+  : "=r" (out)
+  : "r" (nlimbs)
+  : "cc", "memory");
+
+  curve25519_num__shr(num, out);
+
+  return (uint8_t) out;
+}
+
+
+static int curve25519_num__is_odd(curve25519_num_t* num) {
+  return num->limbs[0] & 1;
+}
+
+#include <stdio.h>
+
+
+void curve25519_num_inv(curve25519_num_t* out) {
+  curve25519_num_t a;
+  curve25519_num_t b;
+  curve25519_num_t t0;
+  curve25519_num_t t1;
+
   /* Extended Euclidean Algorithm */
+  curve25519_num_normalize(out);
+
+  curve25519_num_copy(&a, &kPrime);
+  curve25519_num_copy(&b, out);
+  curve25519_num_copy(&t0, &kZero);
+  curve25519_num_copy(&t1, &kOne);
+
+  if (curve25519_num_cmp(&b, &kOne) <= 0)
+    return curve25519_num_copy(out, &t1);
+
+  for (;;) {
+    uint8_t shift;
+
+    for (shift = curve25519_num__full_shr(&a); shift > 0; shift--) {
+      if (curve25519_num__is_odd(&t0))
+        curve25519_num_add(&t0, &kPrime);
+      curve25519_num__shr(&t0, 1);
+    }
+
+    for (shift = curve25519_num__full_shr(&b); shift > 0; shift--) {
+      if (curve25519_num__is_odd(&t1))
+        curve25519_num_add(&t1, &kPrime);
+      curve25519_num__shr(&t1, 1);
+    }
+
+    if (curve25519_num_cmp(&a, &b) >= 0) {
+      curve25519_num_sub(&a, &b);
+      curve25519_num_sub(&t0, &t1);
+
+      if (curve25519_num_cmp(&a, &kOne) <= 0)
+        return curve25519_num_copy(out, &t1);
+    } else {
+      curve25519_num_sub(&b, &a);
+      curve25519_num_sub(&t1, &t0);
+
+      /* XXX(indutny): can it ever get here? */
+      /* TODO(indutny): write a test case */
+      if (curve25519_num_cmp(&b, &kOne) <= 0)
+        return curve25519_num_copy(out, &t0);
+    }
+  }
 }
 
 

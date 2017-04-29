@@ -6,5 +6,6 @@
     V(field_sub)                                                              \
     V(field_mul)                                                              \
     V(field_combined)                                                         \
+    V(field_inv)                                                              \
 
 #endif  /* TEST_TEST_LIST_H_ */

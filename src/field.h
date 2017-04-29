@@ -13,7 +13,7 @@ typedef struct curve25519_num_s curve25519_num_t;
 void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_mul(curve25519_num_t* out, const curve25519_num_t* num);
-void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num);
+void curve25519_num_inv(curve25519_num_t* out);
 
 /* Non constant-time methods */
 void curve25519_num_normalize(curve25519_num_t* out);
