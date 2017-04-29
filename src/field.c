@@ -2,28 +2,14 @@
 
 #include "include/curve25519.h"
 
-static const uint64_t kPrime[] = {
-  0xffffffffffffffedLLU,
-  0xffffffffffffffffLLU,
-  0xffffffffffffffffLLU,
-  0x7fffffffffffffffLLU
-};
-
-/* TODO(indutny): make it constant-time, probably */
-void curve25519_num_normalize(curve25519_num_t* out) {
-  if (out->limbs[3] != kPrime[3] || out->limbs[2] != kPrime[2] ||
-      out->limbs[1] != kPrime[1]) {
-    return;
+static const curve25519_num_t kPrime = {
+  .limbs = {
+    0xffffffffffffffedLLU,
+    0xffffffffffffffffLLU,
+    0xffffffffffffffffLLU,
+    0x7fffffffffffffffLLU
   }
-
-  if (out->limbs[0] < kPrime[0])
-    return;
-
-  out->limbs[3] = 0;
-  out->limbs[2] = 0;
-  out->limbs[1] = 0;
-  out->limbs[0] -= kPrime[0];
-}
+};
 
 
 void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
@@ -37,17 +23,18 @@ void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq 16(%0), %%r10\n"
       "movq 24(%0), %%r11\n"
 
+      /* Prepare storage */
+      "xorq %%rax, %%rax\n"
+
       /* add limbs with carry */
       "addq 0(%1), %%r8\n"
       "adcq 8(%1), %%r9\n"
       "adcq 16(%1), %%r10\n"
       "adcq 24(%1), %%r11\n"
 
-      /* A - B = X * 2^N + Y = K * X + Y */
-      "xorq %%rax, %%rax\n"
-      "btrq $63, %%r11\n"
-      "adc $0, %%rax\n"
-      "movq $19, %%rdx\n"
+      /* A + B = X * 2^N + Y = 38 * X + Y */
+      "adcq $0, %%rax\n"
+      "movq $38, %%rdx\n"
       "mulq %%rdx\n"
 
       /* Add K * X */
@@ -62,8 +49,8 @@ void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq %%r10, 16(%0)\n"
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (nlimbs) :
-    "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
+  : "r" (nlimbs)
+  : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
 
@@ -103,8 +90,43 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq %%r10, 16(%0)\n"
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (nlimbs) :
-    "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
+  : "r" (nlimbs)
+  : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
+}
+
+
+/* TODO(indutny): make it constant-time, if ever desired */
+void curve25519_num_normalize(curve25519_num_t* out) {
+  if (curve25519_num_cmp(out, &kPrime) < 0)
+    return;
+
+  curve25519_num_sub(out, &kPrime);
+}
+
+
+int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b) {
+  int i;
+  for (i = 4; i >= 0; i--)
+    if (a->limbs[i] > b->limbs[i])
+      return 1;
+    else if (a->limbs[i] < b->limbs[i])
+      return -1;
+  return 0;
+}
+
+
+void curve25519_num_mul(curve25519_num_t* out,
+                        const curve25519_num_t* a,
+                        const curve25519_num_t* b) {
+  uint64_t* olimbs = out->limbs;
+  const uint64_t* alimbs = a->limbs;
+  const uint64_t* blimbs = b->limbs;
+
+  __asm__ volatile (
+      "int3\n"
+  : "+r" (olimbs)
+  : "r" (alimbs), "r" (blimbs)
+  : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
 

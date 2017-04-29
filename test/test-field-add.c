@@ -27,8 +27,8 @@ TEST_IMPL(field_add) {
     curve25519_num_add(&a, &b);
 
     curve25519_num_to_bin(bin, &a);
-    CHECK_EQ(memcmp(expected, bin, sizeof(bin)), 0,
-             "Addition should give right result with carry");
+    check_equal_data(bin, expected, sizeof(bin),
+                     "Addition should give right result with carry");
   }
 
   /* Add without full carry */
@@ -60,7 +60,7 @@ TEST_IMPL(field_add) {
     curve25519_num_add(&a, &b);
 
     curve25519_num_to_bin(bin, &a);
-    CHECK_EQ(memcmp(expected, bin, sizeof(bin)), 0,
-             "Addition should give right result without full carry");
+    check_equal_data(bin, expected, sizeof(bin),
+                     "Addition should give right result without full carry");
   }
 }
