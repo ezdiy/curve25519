@@ -46,6 +46,7 @@
     "sources": [
       "test/main.c",
       "test/test-field-add.c",
+      "test/test-field-sub.c",
     ],
   }],
 }

@@ -9,7 +9,7 @@ static const uint64_t kPrime[] = {
   0x7fffffffffffffffLLU
 };
 
-// TODO(indutny): make it constant-time, probably
+/* TODO(indutny): make it constant-time, probably */
 void curve25519_num_normalize(curve25519_num_t* out) {
   if (out->limbs[3] != kPrime[3] || out->limbs[2] != kPrime[2] ||
       out->limbs[1] != kPrime[1]) {
