@@ -8,5 +8,6 @@
     V(field_combined)                                                         \
     V(field_inv)                                                              \
     V(point_dbl)                                                              \
+    V(point_diff_add)                                                         \
 
 #endif  /* TEST_TEST_LIST_H_ */

@@ -52,6 +52,7 @@
       "test/test-field-combined.c",
       "test/test-field-inv.c",
       "test/test-point-dbl.c",
+      "test/test-point-diff-add.c",
     ],
   }],
 }
