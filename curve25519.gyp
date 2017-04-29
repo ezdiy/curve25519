@@ -53,6 +53,7 @@
       "test/test-field-inv.c",
       "test/test-point-dbl.c",
       "test/test-point-diff-add.c",
+      "test/test-point-normalize.c",
     ],
   }],
 }

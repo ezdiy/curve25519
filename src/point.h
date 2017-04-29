@@ -16,10 +16,14 @@ void curve25519_point_init(curve25519_point_t* p, const uint8_t x[32]);
 /* NOTE: `out` can be the same as `p` */
 void curve25519_point_dbl(curve25519_point_t* out,
                           const curve25519_point_t* p);
+
+/* NOTE: `out` can be the same as any of arguments */
 void curve25519_point_diff_add(curve25519_point_t* out,
                                const curve25519_point_t* p1,
                                const curve25519_point_t* p2,
                                const curve25519_point_t* diff);
+
+void curve25519_point_normalize(curve25519_point_t* out);
 
 /* For tests */
 void curve25519_point_init_ex(curve25519_point_t* p, const uint8_t x[32],

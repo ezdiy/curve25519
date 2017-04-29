@@ -9,5 +9,6 @@
     V(field_inv)                                                              \
     V(point_dbl)                                                              \
     V(point_diff_add)                                                         \
+    V(point_normalize)                                                        \
 
 #endif  /* TEST_TEST_LIST_H_ */

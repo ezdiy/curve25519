@@ -147,3 +147,16 @@ void curve25519_point_diff_add(curve25519_point_t* out,
   }
   out->normalized = 0;
 }
+
+
+void curve25519_point_normalize(curve25519_point_t* out) {
+  curve25519_num_t zinv;
+
+  if (out->normalized)
+    return;
+
+  curve25519_num_inv(&zinv, &out->z);
+  curve25519_num_mul(&out->x, &out->x, &zinv);
+  curve25519_num_one(&out->z);
+  out->normalized = 1;
+}

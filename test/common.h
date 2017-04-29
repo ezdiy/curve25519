@@ -50,8 +50,8 @@ struct test_point_diff_add_vector_s {
   const char* description;
 };
 
-static void check_equal_data(uint8_t* actual, uint8_t* expected, size_t size,
-                             const char* msg) {
+static void check_equal_data(uint8_t* actual, const uint8_t* expected,
+                             size_t size, const char* msg) {
   size_t i;
 
   if (memcmp(actual, expected, size) == 0)
