@@ -68,23 +68,6 @@ static test_point_dbl_vector_t dbl_vectors[] = {
 TEST_IMPL(point_dbl) {
   unsigned int i;
 
-  /*
-  curve25519_point_t p;
-  curve25519_point_t out;
-  test_point_dbl_vector_t* vec;
-
-  vec = &dbl_vectors[0];
-  curve25519_point_init_ex(&p, vec->p.x, vec->p.z);
-  for (i = 0; i < 100000; i++) {
-    for (int j = 0; j < 255; j++) {
-      curve25519_point_diff_add(&out, &p, &p, &p);
-      curve25519_point_dbl(&out, &p);
-    }
-    curve25519_point_normalize(&out);
-  }
-  return;
-  */
-
   for (i = 0; i < ARRAY_SIZE(dbl_vectors); i++) {
     test_point_dbl_vector_t* vec;
     curve25519_point_t p;
