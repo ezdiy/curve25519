@@ -76,7 +76,7 @@ TEST_IMPL(field_add) {
 
     curve25519_num_from_bin(&a, add_vectors[i].a);
     curve25519_num_from_bin(&b, add_vectors[i].b);
-    curve25519_num_add(&a, &b);
+    curve25519_num_add(&a, &a, &b);
     curve25519_num_to_bin(bin, &a);
 
     check_equal_data(bin, add_vectors[i].expected, sizeof(bin),

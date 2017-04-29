@@ -76,7 +76,7 @@ TEST_IMPL(field_sub) {
 
     curve25519_num_from_bin(&a, sub_vectors[i].a);
     curve25519_num_from_bin(&b, sub_vectors[i].b);
-    curve25519_num_sub(&a, &b);
+    curve25519_num_sub(&a, &a, &b);
     curve25519_num_to_bin(bin, &a);
 
     check_equal_data(bin, sub_vectors[i].expected, sizeof(bin),

@@ -45,11 +45,11 @@ TEST_IMPL(field_combined) {
 
   curve25519_num_copy(&out, &a);
 
-  curve25519_num_add(&out, &b);
-  curve25519_num_sub(&out, &c);
+  curve25519_num_add(&out, &out, &b);
+  curve25519_num_sub(&out, &out, &c);
   curve25519_num_mul(&out, &d);
-  curve25519_num_add(&out, &c);
-  curve25519_num_sub(&out, &d);
+  curve25519_num_add(&out, &out, &c);
+  curve25519_num_sub(&out, &out, &d);
   curve25519_num_mul(&out, &b);
 
   curve25519_num_to_bin(bin, &out);

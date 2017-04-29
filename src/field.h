@@ -10,8 +10,12 @@ struct curve25519_num_s {
 
 typedef struct curve25519_num_s curve25519_num_t;
 
-void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num);
-void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num);
+/* NOTE: `out` can be the same as `a` */
+void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* a,
+                        const curve25519_num_t* b);
+void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* a,
+                        const curve25519_num_t* b);
+
 void curve25519_num_mul(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_sqr(curve25519_num_t* out);
 void curve25519_num_inv(curve25519_num_t* out);
@@ -24,6 +28,8 @@ int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b);
 
 void curve25519_num_copy(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num);
-void curve25519_num_from_bin(curve25519_num_t* out, uint8_t bin[32]);
+void curve25519_num_from_bin(curve25519_num_t* out, const uint8_t bin[32]);
+void curve25519_num_one(curve25519_num_t* out);
+void curve25519_num_zero(curve25519_num_t* out);
 
 #endif  /* INCLUDE_FIELD_H_ */

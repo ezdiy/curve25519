@@ -23,25 +23,28 @@ static const curve25519_num_t kZero = {
 };
 
 
-void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
+void curve25519_num_add(curve25519_num_t* out,
+                        const curve25519_num_t* a,
+                        const curve25519_num_t* b) {
   uint64_t* olimbs = out->limbs;
-  const uint64_t* nlimbs = num->limbs;
+  const uint64_t* alimbs = a->limbs;
+  const uint64_t* blimbs = b->limbs;
 
   __asm__ __volatile__ (
       /* load all limbs */
-      "movq 0(%0), %%r8\n"
-      "movq 8(%0), %%r9\n"
-      "movq 16(%0), %%r10\n"
-      "movq 24(%0), %%r11\n"
+      "movq 0(%1), %%r8\n"
+      "movq 8(%1), %%r9\n"
+      "movq 16(%1), %%r10\n"
+      "movq 24(%1), %%r11\n"
 
       /* Prepare storage */
       "xorq %%rax, %%rax\n"
 
       /* add limbs with carry */
-      "addq 0(%1), %%r8\n"
-      "adcq 8(%1), %%r9\n"
-      "adcq 16(%1), %%r10\n"
-      "adcq 24(%1), %%r11\n"
+      "addq 0(%2), %%r8\n"
+      "adcq 8(%2), %%r9\n"
+      "adcq 16(%2), %%r10\n"
+      "adcq 24(%2), %%r11\n"
 
       /* A + B = X * 2^N + Y = 2 * K * X + Y */
       "adcq $0, %%rax\n"
@@ -60,30 +63,33 @@ void curve25519_num_add(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq %%r10, 16(%0)\n"
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (nlimbs)
+  : "r" (alimbs), "r" (blimbs)
   : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
 
-void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
+void curve25519_num_sub(curve25519_num_t* out,
+                        const curve25519_num_t* a,
+                        const curve25519_num_t* b) {
   uint64_t* olimbs = out->limbs;
-  const uint64_t* nlimbs = num->limbs;
+  const uint64_t* alimbs = a->limbs;
+  const uint64_t* blimbs = b->limbs;
 
   __asm__ __volatile__ (
       /* load all limbs */
-      "movq 0(%0), %%r8\n"
-      "movq 8(%0), %%r9\n"
-      "movq 16(%0), %%r10\n"
-      "movq 24(%0), %%r11\n"
+      "movq 0(%1), %%r8\n"
+      "movq 8(%1), %%r9\n"
+      "movq 16(%1), %%r10\n"
+      "movq 24(%1), %%r11\n"
 
       /* Prepare storage */
       "xorq %%rax, %%rax\n"
 
       /* sub limbs with borrow */
-      "subq 0(%1), %%r8\n"
-      "sbbq 8(%1), %%r9\n"
-      "sbbq 16(%1), %%r10\n"
-      "sbbq 24(%1), %%r11\n"
+      "subq 0(%2), %%r8\n"
+      "sbbq 8(%2), %%r9\n"
+      "sbbq 16(%2), %%r10\n"
+      "sbbq 24(%2), %%r11\n"
 
       /* Check overflow */
       "adc $0, %%rax\n"
@@ -102,7 +108,7 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq %%r10, 16(%0)\n"
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
-  : "r" (nlimbs)
+  : "r" (alimbs), "r" (blimbs)
   : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
@@ -398,7 +404,7 @@ static void curve25519_num__shift_both(curve25519_num_t* num,
 
     curve25519_num__shr(t, shift_t);
     shift_num -= shift_t;
-    curve25519_num_add(t, &kPrime);
+    curve25519_num_add(t, t, &kPrime);
   }
 }
 
@@ -455,13 +461,13 @@ void curve25519_num_inv(curve25519_num_t* out) {
 
     if (curve25519_num_cmp(&a, &b) >= 0) {
       curve25519_num_fast_sub(&a, &b);
-      curve25519_num_sub(&t0, &t1);
+      curve25519_num_sub(&t0, &t0, &t1);
 
       if (curve25519_num__is_zero(&a))
         return curve25519_num_copy(out, &t1);
     } else {
       curve25519_num_fast_sub(&b, &a);
-      curve25519_num_sub(&t1, &t0);
+      curve25519_num_sub(&t1, &t1, &t0);
 
       /* XXX(indutny): can it ever get here? */
       /* TODO(indutny): write a test case */
@@ -480,7 +486,7 @@ void curve25519_num_normalize(curve25519_num_t* out) {
   if (curve25519_num_cmp(out, &kPrime) < 0)
     return;
 
-  curve25519_num_sub(out, &kPrime);
+  curve25519_num_sub(out, out, &kPrime);
 }
 
 
@@ -521,7 +527,7 @@ void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num) {
 }
 
 
-void curve25519_num_from_bin(curve25519_num_t* out, uint8_t bin[32]) {
+void curve25519_num_from_bin(curve25519_num_t* out, const uint8_t bin[32]) {
   unsigned int i;
   unsigned int off;
 
@@ -540,4 +546,14 @@ void curve25519_num_from_bin(curve25519_num_t* out, uint8_t bin[32]) {
     }
     out->limbs[3 - i] = limb;
   }
+}
+
+
+void curve25519_num_one(curve25519_num_t* out) {
+  curve25519_num_copy(out, &kOne);
+}
+
+
+void curve25519_num_zero(curve25519_num_t* out) {
+  memset(out, 0, sizeof(*out));
 }
