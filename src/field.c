@@ -408,9 +408,9 @@ static int curve25519_num__is_zero(const curve25519_num_t* num) {
 }
 
 
-/* NOTE: `out` muste be bigger or equal than num */
-void curve25519_num_fast_sub(curve25519_num_t* out,
-                             const curve25519_num_t* num) {
+/* NOTE: `out` must be bigger or equal than num */
+static void curve25519_num_fast_sub(curve25519_num_t* out,
+                                    const curve25519_num_t* num) {
   uint64_t* olimbs = out->limbs;
   const uint64_t* nlimbs = num->limbs;
 
