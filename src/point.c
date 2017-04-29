@@ -1,5 +1,3 @@
-#include "include/curve25519.h"
-
 #include "src/point.h"
 #include "src/field.h"
 #include "src/common.h"
@@ -24,6 +22,13 @@ void curve25519_point_init(curve25519_point_t* p, const uint8_t x[32]) {
   curve25519_num_from_bin(&p->x, x);
   curve25519_num_one(&p->z);
   p->normalized = 1;
+}
+
+
+void curve25519_point_zero(curve25519_point_t* p) {
+  curve25519_num_one(&p->x);
+  curve25519_num_zero(&p->z);
+  p->normalized = 0;
 }
 
 
