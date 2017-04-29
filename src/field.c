@@ -65,6 +65,9 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq 16(%0), %%r10\n"
       "movq 24(%0), %%r11\n"
 
+      /* Prepare storage */
+      "xorq %%rax, %%rax\n"
+
       /* sub limbs with borrow */
       "subq 0(%1), %%r8\n"
       "sbbq 8(%1), %%r9\n"
@@ -72,10 +75,8 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
       "sbbq 24(%1), %%r11\n"
 
       /* Check overflow */
-      "xorq %%rax, %%rax\n"
-      "btrq $63, %%r11\n"
       "adc $0, %%rax\n"
-      "movq $19, %%rdx\n"
+      "movq $38, %%rdx\n"
       "mulq %%rdx\n"
 
       /* Sub K * X */
@@ -91,6 +92,22 @@ void curve25519_num_sub(curve25519_num_t* out, const curve25519_num_t* num) {
       "movq %%r11, 24(%0)\n"
   : "+r" (olimbs)
   : "r" (nlimbs)
+  : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
+}
+
+
+void curve25519_num_mul(curve25519_num_t* out,
+                        const curve25519_num_t* a,
+                        const curve25519_num_t* b) {
+  uint64_t* olimbs = out->limbs;
+  const uint64_t* alimbs = a->limbs;
+  const uint64_t* blimbs = b->limbs;
+
+  __asm__ volatile (
+      /* Output is going to live in r8, r9, r10, r11 */
+      "int3\n"
+  : "+r" (olimbs)
+  : "r" (alimbs), "r" (blimbs)
   : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
@@ -112,21 +129,6 @@ int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b) {
     else if (a->limbs[i] < b->limbs[i])
       return -1;
   return 0;
-}
-
-
-void curve25519_num_mul(curve25519_num_t* out,
-                        const curve25519_num_t* a,
-                        const curve25519_num_t* b) {
-  uint64_t* olimbs = out->limbs;
-  const uint64_t* alimbs = a->limbs;
-  const uint64_t* blimbs = b->limbs;
-
-  __asm__ volatile (
-      "int3\n"
-  : "+r" (olimbs)
-  : "r" (alimbs), "r" (blimbs)
-  : "%rax", "%rdx", "%r8", "%r9", "%r10", "%r11", "cc", "memory");
 }
 
 
