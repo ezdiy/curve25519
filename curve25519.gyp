@@ -28,6 +28,7 @@
     "sources": [
       "src/curve25519.c",
       "src/field.c",
+      "src/point.c",
     ],
   }, {
     "target_name": "curve25519-test",
