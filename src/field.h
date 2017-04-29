@@ -24,6 +24,8 @@ void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num);
 
 /* Non constant-time methods */
 void curve25519_num_normalize(curve25519_num_t* out);
+
+/* NOTE: assumes normalized values */
 int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b);
 
 /* Helpers */
@@ -33,5 +35,8 @@ void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num);
 void curve25519_num_from_bin(curve25519_num_t* out, const uint8_t bin[32]);
 void curve25519_num_one(curve25519_num_t* out);
 void curve25519_num_zero(curve25519_num_t* out);
+
+/* For testing, don't use in performance-critical code */
+int curve25519_num_is_one(curve25519_num_t* num);
 
 #endif  /* INCLUDE_FIELD_H_ */

@@ -446,9 +446,6 @@ void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num) {
   curve25519_num_t t0;
   curve25519_num_t t1;
 
-  /* Extended Euclidean Algorithm */
-  curve25519_num_normalize(num);
-
   curve25519_num_copy(&a, &kPrime);
   curve25519_num_copy(&b, num);
   curve25519_num_copy(&t0, &kZero);
@@ -558,4 +555,12 @@ void curve25519_num_one(curve25519_num_t* out) {
 
 void curve25519_num_zero(curve25519_num_t* out) {
   memset(out, 0, sizeof(*out));
+}
+
+
+/* For testing, don't use in performance-critical code */
+int curve25519_num_is_one(curve25519_num_t* num) {
+  curve25519_num_normalize(num);
+  return num->limbs[0] &&
+         (num->limbs[1] | num->limbs[2] | num->limbs[3]) == 0;
 }

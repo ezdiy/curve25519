@@ -5,19 +5,90 @@
 #include "src/common.h"
 
 
-void curve25519_point_init(curve25519_point_t* p, const uint8_t* x) {
+static const curve25519_num_t kCurveA = {
+  .limbs = { 0x76d06, 0, 0, 0 }
+};
+
+
+static const curve25519_num_t kCurveA24 = {
+  .limbs = { 0x1db42, 0, 0, 0 }
+};
+
+
+static const curve25519_num_t kFour = {
+  .limbs = { 4, 0, 0, 0 }
+};
+
+
+void curve25519_point_init(curve25519_point_t* p, const uint8_t x[32]) {
   curve25519_num_from_bin(&p->x, x);
   curve25519_num_one(&p->z);
   p->normalized = 1;
 }
 
 
+/* For tests */
+void curve25519_point_init_ex(curve25519_point_t* p, const uint8_t x[32],
+                              const uint8_t z[32]) {
+  curve25519_num_from_bin(&p->x, x);
+  curve25519_num_from_bin(&p->z, z);
+  p->normalized = curve25519_num_is_one(&p->z);
+}
+
+
 /* TODO(indutny): rewrite for fast squaring */
-void curve25519_point_dbl(curve25519_point_t* p) {
+void curve25519_point_dbl(curve25519_point_t* out,
+                          const curve25519_point_t* p) {
   if (p->normalized) {
     /* http://hyperelliptic.org/EFD/g1p/auto-montgom-xz.html#doubling-mdbl-1987-m */
     curve25519_num_t xx1;
+    curve25519_num_t x3;
+    curve25519_num_t z3;
+
+    /* xx1 = x^2 */
+    curve25519_num_sqr(&xx1, &p->x);
+
+    /* x3 = (xx1 - 1)^2 */
+    curve25519_num_sub(&x3, &xx1, &p->z);
+    curve25519_num_sqr(&x3, &x3);
+
+    /* z3 = 4 * x * (xx1 + a * x + 1) */
+    curve25519_num_mul(&z3, &kCurveA, &p->x);
+    curve25519_num_add(&z3, &z3, &xx1);
+    curve25519_num_add(&z3, &z3, &p->z);
+
+    curve25519_num_mul(&z3, &z3, &p->x);
+    curve25519_num_mul(&out->z, &z3, &kFour);
+
+    curve25519_num_copy(&out->x, &x3);
   } else {
     /* http://hyperelliptic.org/EFD/g1p/auto-montgom-xz.html#doubling-dbl-1987-m-3 */
+    curve25519_num_t a;
+    curve25519_num_t b;
+    curve25519_num_t c;
+
+    /* a = x + z */
+    curve25519_num_add(&a, &p->x, &p->z);
+
+    /* a = a^2 */
+    curve25519_num_sqr(&a, &a);
+
+    /* b = x - z */
+    curve25519_num_sub(&b, &p->x, &p->z);
+
+    /* b = b^2 */
+    curve25519_num_sqr(&b, &b);
+
+    /* c = a - b */
+    curve25519_num_sub(&c, &a, &b);
+
+    /* x3 = a * b */
+    curve25519_num_mul(&out->x, &a, &b);
+
+    /* z3 = c * (b + a24 * c) */
+    curve25519_num_mul(&out->z, &kCurveA24, &c);
+    curve25519_num_add(&out->z, &out->z, &b);
+    curve25519_num_mul(&out->z, &out->z, &c);
   }
+  out->normalized = 0;
 }

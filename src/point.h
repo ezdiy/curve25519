@@ -11,7 +11,14 @@ struct curve25519_point_s {
 
 typedef struct curve25519_point_s curve25519_point_t;
 
-void curve25519_point_init(curve25519_point_t* p, const uint8_t* x);
-void curve25519_point_dbl(curve25519_point_t* p);
+void curve25519_point_init(curve25519_point_t* p, const uint8_t x[32]);
+
+/* NOTE: `out` can be the same as `p` */
+void curve25519_point_dbl(curve25519_point_t* out,
+                          const curve25519_point_t* p);
+
+/* For tests */
+void curve25519_point_init_ex(curve25519_point_t* p, const uint8_t x[32],
+                              const uint8_t z[32]);
 
 #endif  /* INCLUDE_POINT_H_ */

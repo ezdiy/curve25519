@@ -5,14 +5,16 @@
 
 #include "curve25519.h"
 
-#include "src/field.h"
 #include "src/common.h"
+#include "src/field.h"
+#include "src/point.h"
 
 #include "test-list.h"
 #include "mini/test.h"
 
 typedef struct test_field_vector_s test_field_vector_t;
 typedef struct test_field_inv_vector_s test_field_inv_vector_t;
+typedef struct test_point_dbl_vector_s test_point_dbl_vector_t;
 
 struct test_field_vector_s {
   uint8_t a[32];
@@ -24,6 +26,14 @@ struct test_field_vector_s {
 struct test_field_inv_vector_s {
   uint8_t num[32];
   uint8_t expected[32];
+  const char* description;
+};
+
+struct test_point_dbl_vector_s {
+  uint8_t x[32];
+  uint8_t z[32];
+  uint8_t expected_x[32];
+  uint8_t expected_z[32];
   const char* description;
 };
 
