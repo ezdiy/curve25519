@@ -339,7 +339,7 @@ static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
 }
 
 
-static uint8_t curve25519_num__full_shr(curve25519_num_t* num) {
+static uint8_t curve25519_num__tzcnt(const curve25519_num_t* num) {
   uint64_t out;
   const uint64_t* nlimbs = num->limbs;
 
@@ -349,14 +349,31 @@ static uint8_t curve25519_num__full_shr(curve25519_num_t* num) {
   : "r" (nlimbs)
   : "cc", "memory");
 
-  curve25519_num__shr(num, out);
-
   return (uint8_t) out;
 }
 
 
-static int curve25519_num__is_odd(curve25519_num_t* num) {
-  return num->limbs[0] & 1;
+static void curve25519_num__shift_both(curve25519_num_t* num,
+                                       curve25519_num_t* t) {
+  uint8_t shift_num;
+
+  shift_num = curve25519_num__tzcnt(num);
+  if (shift_num == 0)
+    return;
+
+  curve25519_num__shr(num, shift_num);
+
+  for (;;) {
+    uint8_t shift_t = curve25519_num__tzcnt(t);
+    if (shift_t >= shift_num) {
+      curve25519_num__shr(t, shift_num);
+      break;
+    }
+
+    curve25519_num__shr(t, shift_t);
+    shift_num -= shift_t;
+    curve25519_num_add(t, &kPrime);
+  }
 }
 
 
@@ -378,19 +395,8 @@ void curve25519_num_inv(curve25519_num_t* out) {
     return curve25519_num_copy(out, &t1);
 
   for (;;) {
-    uint8_t shift;
-
-    for (shift = curve25519_num__full_shr(&a); shift > 0; shift--) {
-      if (curve25519_num__is_odd(&t0))
-        curve25519_num_add(&t0, &kPrime);
-      curve25519_num__shr(&t0, 1);
-    }
-
-    for (shift = curve25519_num__full_shr(&b); shift > 0; shift--) {
-      if (curve25519_num__is_odd(&t1))
-        curve25519_num_add(&t1, &kPrime);
-      curve25519_num__shr(&t1, 1);
-    }
+    curve25519_num__shift_both(&a, &t0);
+    curve25519_num__shift_both(&b, &t1);
 
     if (curve25519_num_cmp(&a, &b) >= 0) {
       curve25519_num_sub(&a, &b);
