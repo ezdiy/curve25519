@@ -5,6 +5,7 @@
 
 #include "curve25519.h"
 
+#include "src/field.h"
 #include "src/common.h"
 
 #include "test-list.h"

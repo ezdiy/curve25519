@@ -1,7 +1,6 @@
 #include <string.h>  /* memset */
 
-#include "include/curve25519.h"
-
+#include "src/field.h"
 #include "src/common.h"
 
 static const curve25519_num_t kPrime = {
@@ -11,6 +10,16 @@ static const curve25519_num_t kPrime = {
     0xffffffffffffffffLLU,
     0x7fffffffffffffffLLU
   }
+};
+
+
+static const curve25519_num_t kOne = {
+  .limbs = { 1, 0, 0, 0 }
+};
+
+
+static const curve25519_num_t kZero = {
+  .limbs = { 0, 0, 0, 0 }
 };
 
 
@@ -320,6 +329,14 @@ void curve25519_num_mul(curve25519_num_t* out,
     "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15",
     "cc", "memory");
 }
+
+
+void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num) {
+  /* Extended Euclidean Algorithm */
+}
+
+
+/* Helpers */
 
 
 /* TODO(indutny): make it constant-time, if ever desired */
