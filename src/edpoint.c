@@ -40,6 +40,11 @@ static const curve25519_num_t kCurveRootM1 = {
 };
 
 
+static const curve25519_num_t kTwo = {
+  .limbs = { 2, 0, 0, 0 }
+};
+
+
 int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
                                  const uint8_t bin[32]) {
   uint8_t copy[32];
@@ -143,6 +148,50 @@ int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
 
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p) {
+  curve25519_num_t a;
+  curve25519_num_t b;
+  curve25519_num_t d;
+  curve25519_num_t e;
+  curve25519_num_t g;
+  curve25519_num_t h;
+
+  curve25519_num_sqr(&a, &p->x);
+  curve25519_num_sqr(&b, &p->y);
+  curve25519_num_copy(&d, &a);
+  curve25519_num_neg(&d);
+
+  curve25519_num_add(&e, &p->x, &p->y);
+  curve25519_num_sqr(&e, &e);
+  curve25519_num_sub(&e, &e, &a);
+  curve25519_num_sub(&e, &e, &b);
+  curve25519_num_add(&g, &d, &b);
+  curve25519_num_sub(&h, &d, &b);
+
+  if (p->normalized) {
+    /* http://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html#doubling-mdbl-2008-hwcd */
+
+    curve25519_num_sub(&out->x, &g, &kTwo);
+    curve25519_num_mul(&out->x, &out->x, &e);
+    curve25519_num_mul(&out->y, &g, &h);
+    curve25519_num_mul(&out->t, &e, &h);
+
+    curve25519_num_mul(&out->z, &g, &kTwo);
+    curve25519_num_sqr(&a, &g);
+    curve25519_num_sub(&out->z, &a, &out->z);
+  } else {
+    /* http://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html#doubling-dbl-2008-hwcd */
+    curve25519_num_t c;
+    curve25519_num_t f;
+
+    curve25519_num_sqr(&c, &p->z);
+    curve25519_num_mul(&c, &c, &kTwo);
+    curve25519_num_sub(&f, &g, &c);
+
+    curve25519_num_mul(&out->x, &e, &f);
+    curve25519_num_mul(&out->y, &g, &h);
+    curve25519_num_mul(&out->t, &e, &h);
+    curve25519_num_mul(&out->z, &f, &g);
+  }
 }
 
 
