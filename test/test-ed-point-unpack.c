@@ -75,5 +75,8 @@ TEST_IMPL(ed_point_unpack) {
     curve25519_num_mul(&expected_t, &p.x, &p.y);
     CHECK_EQ(curve25519_num_ncmp(&p.t, &expected_t), 0,
              "t = x * y after unpack");
+
+    curve25519_ed_point_to_bin(bin, &p);
+    check_equal_data(bin, vec->bin, sizeof(bin), vec->description);
   }
 }
