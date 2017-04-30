@@ -257,24 +257,24 @@ void curve25519_ed_point_add(curve25519_ed_point_t* out,
 
 void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
                                     const curve25519_ed_point_t* p,
-                                    const curve25519_num_t* num) {
+                                    const uint8_t scalar[32]) {
   curve25519_ed_point_t hole;
   curve25519_ed_point_t runner;
-  curve25519_num_t scalar;
   unsigned int i;
 
   curve25519_ed_point_zero(&hole);
   curve25519_ed_point_copy(&runner, p);
   curve25519_ed_point_zero(out);
 
-  curve25519_num_copy(&scalar, num);
   for (i = 0; i < kFieldSize; i++) {
-    if (curve25519_num_is_odd(&scalar))
+    uint8_t bit;
+
+    bit = scalar[i / 8] & (1 << (i % 8));
+    if (bit)
       curve25519_ed_point_add(out, out, &runner);
     else
       curve25519_ed_point_add(&hole, &hole, &runner);
     curve25519_ed_point_dbl(&runner, &runner);
-    curve25519_num_shr(&scalar, 1);
   }
 }
 

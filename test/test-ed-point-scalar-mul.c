@@ -109,15 +109,12 @@ TEST_IMPL(ed_point_scalar_mul) {
     const test_ed_point_t* point;
     uint8_t bin[32];
     curve25519_ed_point_t p;
-    curve25519_num_t scalar;
 
     vec = &mul_vectors[i];
     point = &vec->p;
 
     curve25519_ed_point_init_ex(&p, point->x, point->y, point->z, point->t);
-    curve25519_num_from_bin(&scalar, vec->scalar);
-
-    curve25519_ed_point_scalar_mul(&p, &p, &scalar);
+    curve25519_ed_point_scalar_mul(&p, &p, vec->scalar);
     curve25519_ed_point_normalize(&p);
 
     curve25519_num_to_bin(bin, &p.x);
