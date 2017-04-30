@@ -15,7 +15,8 @@ static const curve25519_num_t kCurveD = {
 };
 
 
-int curve25519_ed_point_init(curve25519_ed_point_t* p, const uint8_t bin[32]) {
+int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
+                                 const uint8_t bin[32]) {
   uint8_t copy[32];
   unsigned int is_odd;
   curve25519_num_t x2;
@@ -70,7 +71,12 @@ void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
 
 
 void curve25519_ed_point_to_bin(uint8_t bin[32],
-                                const curve25519_ed_point_t* p) {
+                                curve25519_ed_point_t* p) {
+  curve25519_ed_point_normalize(p);
+
+  curve25519_num_to_bin(bin, &p->y);
+  if (curve25519_num_is_odd(&p->x))
+    bin[31] |= 0x80;
 }
 
 

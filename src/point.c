@@ -18,8 +18,8 @@ static const curve25519_num_t kFour = {
 };
 
 
-void curve25519_point_init(curve25519_point_t* p, const uint8_t x[32]) {
-  curve25519_num_from_bin(&p->x, x);
+void curve25519_point_from_bin(curve25519_point_t* p, const uint8_t bin[32]) {
+  curve25519_num_from_bin(&p->x, bin);
   curve25519_num_one(&p->z);
   p->normalized = 1;
 }

@@ -13,14 +13,14 @@ struct curve25519_ed_point_s {
 
 typedef struct curve25519_ed_point_s curve25519_ed_point_t;
 
-int curve25519_ed_point_init(curve25519_ed_point_t* p, const uint8_t bin[32]);
+int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
+                                 const uint8_t bin[32]);
+void curve25519_ed_point_to_bin(uint8_t bin[32],
+                                curve25519_ed_point_t* p);
 
 /* NOTE: `out` can be the same as `p` */
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p);
-
-void curve25519_ed_point_to_bin(uint8_t bin[32],
-                                const curve25519_ed_point_t* p);
 
 void curve25519_ed_point_normalize(curve25519_ed_point_t* out);
 
