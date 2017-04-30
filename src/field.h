@@ -30,6 +30,9 @@ void curve25519_num_normalize(curve25519_num_t* out);
 /* NOTE: assumes normalized values */
 int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b);
 
+/* Does not assume normalized values */
+int curve25519_num_ncmp(curve25519_num_t* a, curve25519_num_t* b);
+
 /* Helpers */
 
 void curve25519_num_copy(curve25519_num_t* out, const curve25519_num_t* num);

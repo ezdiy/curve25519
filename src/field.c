@@ -694,6 +694,13 @@ int curve25519_num_cmp(const curve25519_num_t* a, const curve25519_num_t* b) {
 }
 
 
+int curve25519_num_ncmp(curve25519_num_t* a, curve25519_num_t* b) {
+  curve25519_num_normalize(a);
+  curve25519_num_normalize(b);
+  return curve25519_num_cmp(a, b);
+}
+
+
 void curve25519_num_to_bin(uint8_t out[32], curve25519_num_t* num) {
   unsigned int i;
   unsigned int off;

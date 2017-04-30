@@ -84,8 +84,6 @@ TEST_IMPL(field_inv) {
     curve25519_num_inv(&num, &num);
     curve25519_num_inv(&num, &num);
 
-    curve25519_num_normalize(&num);
-    curve25519_num_normalize(&original);
-    CHECK_EQ(curve25519_num_cmp(&num, &original), 0, "double inverse");
+    CHECK_EQ(curve25519_num_ncmp(&num, &original), 0, "double inverse");
   }
 }

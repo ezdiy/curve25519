@@ -6,8 +6,8 @@
 
 
 static int curve25519_ed__unpack(curve25519_num_t* out,
-                                 const curve25519_num_t* num,
-                                 const curve25519_num_t* denom);
+                                 curve25519_num_t* num,
+                                 curve25519_num_t* denom);
 
 
 static const curve25519_num_t kCurveD = {
@@ -54,7 +54,7 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
   curve25519_num_t denom;
 
   memcpy(copy, bin, sizeof(copy));
-  is_odd = copy[sizeof(copy) - 1] & 0x80;
+  is_odd = (copy[sizeof(copy) - 1] & 0x80) ? 1 : 0;
   copy[sizeof(copy) - 1] &= ~0x80;
 
   curve25519_num_from_bin(&p->y, copy);
@@ -80,12 +80,9 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
     return 0;
   }
 
-  /* TODO(indutny): these normalize calls should be in `field.c` */
-  curve25519_num_normalize(&num);
   if (0 != curve25519_ed__unpack(&p->x, &num, &denom))
     return -1;
 
-  curve25519_num_normalize(&p->x);
   is_odd ^= curve25519_num_is_odd(&p->x);
   if (is_odd)
     curve25519_num_neg(&p->x);
@@ -96,8 +93,8 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
 }
 
 
-int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
-                          const curve25519_num_t* denom) {
+int curve25519_ed__unpack(curve25519_num_t* out, curve25519_num_t* num,
+                          curve25519_num_t* denom) {
   /* From: https://ed25519.cr.yp.to/ed25519-20110926.pdf
    *
    * beta = uv^3 (uv^7)^((q - 5) / 8)
@@ -130,16 +127,13 @@ int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
 
   /* beta2 * u = +/- v */
   curve25519_num_mul(&pow, &pow, denom);
-
-  curve25519_num_normalize(&pow);
-  if (curve25519_num_cmp(&pow, num) == 0)
+  if (curve25519_num_ncmp(&pow, num) == 0)
     return 0;
 
   curve25519_num_mul(out, out, &kCurveRootM1);
   curve25519_num_neg(&pow);
 
-  curve25519_num_normalize(&pow);
-  if (curve25519_num_cmp(&pow, num) != 0)
+  if (curve25519_num_ncmp(&pow, num) != 0)
     return -1;
 
   return 0;
