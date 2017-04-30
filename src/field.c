@@ -534,6 +534,10 @@ void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num) {
 }
 
 
+void curve25519_num_sqrt(curve25519_num_t* out, const curve25519_num_t* num) {
+}
+
+
 static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
   const uint64_t* nlimbs = num->limbs;
 
@@ -747,9 +751,21 @@ void curve25519_num_zero(curve25519_num_t* out) {
 }
 
 
-/* For testing, don't use in performance-critical code */
+/* Don't use in performance-critical code */
 int curve25519_num_is_one(curve25519_num_t* num) {
   curve25519_num_normalize(num);
   return num->limbs[0] &&
          (num->limbs[1] | num->limbs[2] | num->limbs[3]) == 0;
+}
+
+
+int curve25519_num_is_zero(curve25519_num_t* num) {
+  curve25519_num_normalize(num);
+  return curve25519_num__is_zero(num);
+}
+
+
+int curve25519_num_is_odd(curve25519_num_t* num) {
+  curve25519_num_normalize(num);
+  return num->limbs[0] & 1;
 }

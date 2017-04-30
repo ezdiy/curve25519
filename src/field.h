@@ -20,6 +20,7 @@ void curve25519_num_mul(curve25519_num_t* out, const curve25519_num_t* a,
 
 /* NOTE: `out` can be the same as `num` */
 void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num);
+void curve25519_num_sqrt(curve25519_num_t* out, const curve25519_num_t* num);
 void curve25519_num_inv(curve25519_num_t* out, const curve25519_num_t* num);
 
 /* Non constant-time methods */
@@ -36,7 +37,9 @@ void curve25519_num_from_bin(curve25519_num_t* out, const uint8_t bin[32]);
 void curve25519_num_one(curve25519_num_t* out);
 void curve25519_num_zero(curve25519_num_t* out);
 
-/* For testing, don't use in performance-critical code */
+/* Don't use in performance-critical code */
 int curve25519_num_is_one(curve25519_num_t* num);
+int curve25519_num_is_zero(curve25519_num_t* num);
+int curve25519_num_is_odd(curve25519_num_t* num);
 
 #endif  /* INCLUDE_FIELD_H_ */

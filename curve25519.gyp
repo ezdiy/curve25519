@@ -29,6 +29,7 @@
       "src/curve25519.c",
       "src/field.c",
       "src/point.c",
+      "src/edpoint.c",
     ],
   }, {
     "target_name": "curve25519-test",
