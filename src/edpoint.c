@@ -12,20 +12,30 @@ static int curve25519_ed__unpack(curve25519_num_t* out,
 
 static const curve25519_num_t kCurveD = {
   .limbs = {
-    0xa3785913ca4deb75,
-    0xabd841414d0a7000,
-    0x98e879777940c78c,
-    0x73fe6f2bee6c0352
+    0x75eb4dca135978a3,
+    0x00700a4d4141d8ab,
+    0x8cc740797779e898,
+    0x52036cee2b6ffe73
   }
 };
 
 
 static const curve25519_num_t kCurvePm5d8 = {
   .limbs = {
-    0xfdffffffffffffff,
+    0xfffffffffffffffd,
     0xffffffffffffffff,
     0xffffffffffffffff,
-    0xffffffffffffff0f
+    0x0fffffffffffffff
+  }
+};
+
+
+static const curve25519_num_t kCurveRootM1 = {
+  .limbs = {
+    0x3b11e4d8b5f15f3d,
+    0xd0bce7f952d01b87,
+    0xd4b2ff66c2042858,
+    0x547cdb7fb03e20f4
   }
 };
 
@@ -44,8 +54,7 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
 
   curve25519_num_from_bin(&p->y, copy);
   curve25519_num_one(&p->z);
-  curve25519_num_zero(&p->t);
-  p->normalized = 0;
+  p->normalized = 1;
 
   /* x^2 = (y^2 - 1) / (d y^2 + 1) */
 
@@ -62,15 +71,21 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
       return -1;
 
     curve25519_num_zero(&p->x);
+    curve25519_num_zero(&p->t);
     return 0;
   }
 
+  /* TODO(indutny): these normalize calls should be in `field.c` */
+  curve25519_num_normalize(&num);
   if (0 != curve25519_ed__unpack(&p->x, &num, &denom))
     return -1;
 
+  curve25519_num_normalize(&p->x);
   is_odd ^= curve25519_num_is_odd(&p->x);
   if (is_odd)
     curve25519_num_neg(&p->x);
+
+  curve25519_num_mul(&p->t, &p->x, &p->y);
 
   return 0;
 }
@@ -95,7 +110,6 @@ int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
   curve25519_num_sqr(&uv7, &uv7);
   curve25519_num_mul(&uv7, &uv7, out);
 
-
   /* Behold, very naive exponentiation. Result = out */
   curve25519_num_copy(&pow, &kCurvePm5d8);
 
@@ -110,14 +124,17 @@ int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
   curve25519_num_sqr(&pow, out);
 
   /* beta2 * u = +/- v */
-  curve25519_num_mul(&pow, &pow, num);
+  curve25519_num_mul(&pow, &pow, denom);
 
-  if (curve25519_num_cmp(&pow, denom) == 0)
+  curve25519_num_normalize(&pow);
+  if (curve25519_num_cmp(&pow, num) == 0)
     return 0;
 
-  curve25519_num_neg(out);
+  curve25519_num_mul(out, out, &kCurveRootM1);
   curve25519_num_neg(&pow);
-  if (curve25519_num_cmp(&pow, denom) != 0)
+
+  curve25519_num_normalize(&pow);
+  if (curve25519_num_cmp(&pow, num) != 0)
     return -1;
 
   return 0;

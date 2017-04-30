@@ -8,6 +8,7 @@
 #include "src/common.h"
 #include "src/field.h"
 #include "src/point.h"
+#include "src/edpoint.h"
 
 #include "test-list.h"
 #include "mini/test.h"
