@@ -43,6 +43,36 @@ static const curve25519_num_t kCurveRootM1 = {
 };
 
 
+static const curve25519_num_t kCurveBaseX = {
+  .limbs = {
+    0x1ad5258f602d56c9,
+    0xb2a7259560c72c69,
+    0x5cdcd6fd31e2a4c0,
+    0xfe536ecdd3366921
+  }
+};
+
+
+static const curve25519_num_t kCurveBaseY = {
+  .limbs = {
+    0x5866666666666666,
+    0x6666666666666666,
+    0x6666666666666666,
+    0x6666666666666666
+  }
+};
+
+
+static const curve25519_num_t kCurveBaseT = {
+  .limbs = {
+    0xa3ddb7a5b38ade6d,
+    0xf5525177809ff020,
+    0x7de3ab648e4eea66,
+    0x65768bd70f5f8767
+  }
+};
+
+
 static const curve25519_num_t kTwo = {
   .limbs = { 2, 0, 0, 0 }
 };
@@ -300,6 +330,15 @@ void curve25519_ed_point_normalize(curve25519_ed_point_t* out) {
   curve25519_num_mul(&out->y, &out->y, &zinv);
   curve25519_num_mul(&out->t, &out->t, &zinv);
   curve25519_num_one(&out->z);
+  out->normalized = 1;
+}
+
+
+void curve25519_ed_point_base(curve25519_ed_point_t* out) {
+  curve25519_num_copy(&out->x, &kCurveBaseX);
+  curve25519_num_copy(&out->y, &kCurveBaseY);
+  curve25519_num_one(&out->z);
+  curve25519_num_copy(&out->t, &kCurveBaseT);
   out->normalized = 1;
 }
 

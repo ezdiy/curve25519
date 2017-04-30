@@ -15,5 +15,6 @@
     V(ed_point_dbl)                                                           \
     V(ed_point_add)                                                           \
     V(ed_point_scalar_mul)                                                    \
+    V(vanity)                                                                 \
 
 #endif  /* TEST_TEST_LIST_H_ */

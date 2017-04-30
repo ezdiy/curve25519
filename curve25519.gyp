@@ -60,6 +60,7 @@
       "test/test-ed-point-dbl.c",
       "test/test-ed-point-add.c",
       "test/test-ed-point-scalar-mul.c",
+      "test/test-vanity.c",
     ],
   }],
 }

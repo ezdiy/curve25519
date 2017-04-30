@@ -33,6 +33,7 @@ void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
                                     const uint8_t scalar[32]);
 
 void curve25519_ed_point_normalize(curve25519_ed_point_t* out);
+void curve25519_ed_point_base(curve25519_ed_point_t* out);
 void curve25519_ed_point_zero(curve25519_ed_point_t* out);
 int curve25519_ed_point_is_zero(curve25519_ed_point_t* num);
 void curve25519_ed_point_copy(curve25519_ed_point_t* out,
