@@ -20,12 +20,12 @@ void curve25519_ed_point_to_bin(uint8_t bin[32],
 
 /* NOTE: `out` can be the same as `p` */
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
-                             const curve25519_ed_point_t* p);
+                             curve25519_ed_point_t* p);
 
 /* NOTE: any two points may be the same */
 void curve25519_ed_point_add(curve25519_ed_point_t* out,
-                             const curve25519_ed_point_t* p1,
-                             const curve25519_ed_point_t* p2);
+                             curve25519_ed_point_t* p1,
+                             curve25519_ed_point_t* p2);
 
 /* NOTE: `out` can be the same as `p` */
 void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
@@ -34,6 +34,7 @@ void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
 
 void curve25519_ed_point_normalize(curve25519_ed_point_t* out);
 void curve25519_ed_point_zero(curve25519_ed_point_t* out);
+int curve25519_ed_point_is_zero(curve25519_ed_point_t* num);
 void curve25519_ed_point_copy(curve25519_ed_point_t* out,
                               const curve25519_ed_point_t* p);
 

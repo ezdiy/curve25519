@@ -144,8 +144,10 @@ int curve25519_ed__unpack(curve25519_num_t* out, curve25519_num_t* num,
 
 
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
-                             const curve25519_ed_point_t* p) {
-  /* Support zero */
+                             curve25519_ed_point_t* p) {
+  if (curve25519_ed_point_is_zero(p))
+    return curve25519_ed_point_copy(out, p);
+
   curve25519_num_t a;
   curve25519_num_t b;
   curve25519_num_t d;
@@ -196,9 +198,13 @@ void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
 
 
 void curve25519_ed_point_add(curve25519_ed_point_t* out,
-                             const curve25519_ed_point_t* p1,
-                             const curve25519_ed_point_t* p2) {
-  /* Support zero */
+                             curve25519_ed_point_t* p1,
+                             curve25519_ed_point_t* p2) {
+  if (curve25519_ed_point_is_zero(p1))
+    return curve25519_ed_point_copy(out, p2);
+  if (curve25519_ed_point_is_zero(p2))
+    return curve25519_ed_point_copy(out, p1);
+
   curve25519_num_t a;
   curve25519_num_t b;
   curve25519_num_t c;
@@ -304,6 +310,12 @@ void curve25519_ed_point_zero(curve25519_ed_point_t* out) {
   curve25519_num_one(&out->z);
   curve25519_num_zero(&out->t);
   out->normalized = 1;
+}
+
+
+int curve25519_ed_point_is_zero(curve25519_ed_point_t* num) {
+  return curve25519_num_is_zero(&num->x) &&
+         curve25519_num_ncmp(&num->y, &num->z) == 0;
 }
 
 
