@@ -44,6 +44,7 @@ void curve25519_point_init_ex(curve25519_point_t* p, const uint8_t x[32],
 /* TODO(indutny): rewrite for fast squaring */
 void curve25519_point_dbl(curve25519_point_t* out,
                           const curve25519_point_t* p) {
+  /* Support zero */
   if (p->normalized) {
     /* http://hyperelliptic.org/EFD/g1p/auto-montgom-xz.html#doubling-mdbl-1987-m */
     curve25519_num_t xx1;
@@ -103,6 +104,7 @@ void curve25519_point_diff_add(curve25519_point_t* out,
                                const curve25519_point_t* p1,
                                const curve25519_point_t* p2,
                                const curve25519_point_t* diff) {
+  /* Support zero */
   /* http://hyperelliptic.org/EFD/g1p/auto-montgom-xz.html#diffadd-mdadd-1987-m */
 
   curve25519_num_t a;

@@ -14,5 +14,6 @@
     V(ed_point_unpack)                                                        \
     V(ed_point_dbl)                                                           \
     V(ed_point_add)                                                           \
+    V(ed_point_scalar_mul)                                                    \
 
 #endif  /* TEST_TEST_LIST_H_ */

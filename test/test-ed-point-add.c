@@ -217,7 +217,6 @@ TEST_IMPL(ed_point_add) {
     const test_ed_point_add_vector_t* vec;
     const test_ed_point_t* point_a;
     const test_ed_point_t* point_b;
-    const test_ed_point_t* expected;
     uint8_t bin[32];
     curve25519_ed_point_t a;
     curve25519_ed_point_t b;
@@ -225,7 +224,6 @@ TEST_IMPL(ed_point_add) {
     vec = &add_vectors[i];
     point_a = &vec->a;
     point_b = &vec->b;
-    expected = &vec->expected;
 
     curve25519_ed_point_init_ex(&a, point_a->x, point_a->y, point_a->z,
                                 point_a->t);
@@ -236,8 +234,8 @@ TEST_IMPL(ed_point_add) {
     curve25519_ed_point_normalize(&a);
 
     curve25519_num_to_bin(bin, &a.x);
-    check_equal_data(bin, expected->x, sizeof(bin), vec->description);
+    check_equal_data(bin, vec->expected.x, sizeof(bin), vec->description);
     curve25519_num_to_bin(bin, &a.y);
-    check_equal_data(bin, expected->y, sizeof(bin), vec->description);
+    check_equal_data(bin, vec->expected.y, sizeof(bin), vec->description);
   }
 }

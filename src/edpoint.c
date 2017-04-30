@@ -10,6 +10,9 @@ static int curve25519_ed__unpack(curve25519_num_t* out,
                                  curve25519_num_t* denom);
 
 
+static const unsigned int kFieldSize = 255;
+
+
 static const curve25519_num_t kCurveD = {
   .limbs = {
     0x75eb4dca135978a3,
@@ -142,6 +145,7 @@ int curve25519_ed__unpack(curve25519_num_t* out, curve25519_num_t* num,
 
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p) {
+  /* Support zero */
   curve25519_num_t a;
   curve25519_num_t b;
   curve25519_num_t d;
@@ -194,6 +198,7 @@ void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
 void curve25519_ed_point_add(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p1,
                              const curve25519_ed_point_t* p2) {
+  /* Support zero */
   curve25519_num_t a;
   curve25519_num_t b;
   curve25519_num_t c;
@@ -244,6 +249,30 @@ void curve25519_ed_point_add(curve25519_ed_point_t* out,
 }
 
 
+void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
+                                    const curve25519_ed_point_t* p,
+                                    const curve25519_num_t* num) {
+  curve25519_ed_point_t hole;
+  curve25519_ed_point_t runner;
+  curve25519_num_t scalar;
+  unsigned int i;
+
+  curve25519_ed_point_zero(&hole);
+  curve25519_ed_point_copy(&runner, p);
+  curve25519_ed_point_zero(out);
+
+  curve25519_num_copy(&scalar, num);
+  for (i = 0; i < kFieldSize; i++) {
+    if (curve25519_num_is_odd(&scalar))
+      curve25519_ed_point_add(out, out, &runner);
+    else
+      curve25519_ed_point_add(&hole, &hole, &runner);
+    curve25519_ed_point_dbl(&runner, &runner);
+    curve25519_num_shr(&scalar, 1);
+  }
+}
+
+
 void curve25519_ed_point_to_bin(uint8_t bin[32],
                                 curve25519_ed_point_t* p) {
   curve25519_ed_point_normalize(p);
@@ -266,6 +295,25 @@ void curve25519_ed_point_normalize(curve25519_ed_point_t* out) {
   curve25519_num_mul(&out->t, &out->t, &zinv);
   curve25519_num_one(&out->z);
   out->normalized = 1;
+}
+
+
+void curve25519_ed_point_zero(curve25519_ed_point_t* out) {
+  curve25519_num_zero(&out->x);
+  curve25519_num_one(&out->y);
+  curve25519_num_one(&out->z);
+  curve25519_num_zero(&out->t);
+  out->normalized = 1;
+}
+
+
+void curve25519_ed_point_copy(curve25519_ed_point_t* out,
+                              const curve25519_ed_point_t* p) {
+  curve25519_num_copy(&out->x, &p->x);
+  curve25519_num_copy(&out->y, &p->y);
+  curve25519_num_copy(&out->z, &p->z);
+  curve25519_num_copy(&out->t, &p->t);
+  out->normalized = p->normalized;
 }
 
 

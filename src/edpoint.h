@@ -27,7 +27,15 @@ void curve25519_ed_point_add(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p1,
                              const curve25519_ed_point_t* p2);
 
+/* NOTE: `out` can be the same as `p` */
+void curve25519_ed_point_scalar_mul(curve25519_ed_point_t* out,
+                                    const curve25519_ed_point_t* p,
+                                    const curve25519_num_t* num);
+
 void curve25519_ed_point_normalize(curve25519_ed_point_t* out);
+void curve25519_ed_point_zero(curve25519_ed_point_t* out);
+void curve25519_ed_point_copy(curve25519_ed_point_t* out,
+                              const curve25519_ed_point_t* p);
 
 /* For tests */
 void curve25519_ed_point_init_ex(curve25519_ed_point_t* p, const uint8_t x[32],
