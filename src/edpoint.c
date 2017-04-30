@@ -5,6 +5,11 @@
 #include "src/common.h"
 
 
+static int curve25519_ed__unpack(curve25519_num_t* out,
+                                 const curve25519_num_t* num,
+                                 const curve25519_num_t* denom);
+
+
 static const curve25519_num_t kCurveD = {
   .limbs = {
     0xa3785913ca4deb75,
@@ -15,14 +20,23 @@ static const curve25519_num_t kCurveD = {
 };
 
 
+static const curve25519_num_t kCurvePm5d8 = {
+  .limbs = {
+    0xfdffffffffffffff,
+    0xffffffffffffffff,
+    0xffffffffffffffff,
+    0xffffffffffffff0f
+  }
+};
+
+
 int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
                                  const uint8_t bin[32]) {
   uint8_t copy[32];
   unsigned int is_odd;
-  curve25519_num_t x2;
   curve25519_num_t y2;
-  curve25519_num_t lhs;
-  curve25519_num_t rhs;
+  curve25519_num_t num;
+  curve25519_num_t denom;
 
   memcpy(copy, bin, sizeof(copy));
   is_odd = copy[sizeof(copy) - 1] & 0x80;
@@ -34,14 +48,16 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
   p->normalized = 0;
 
   /* x^2 = (y^2 - 1) / (d y^2 + 1) */
-  curve25519_num_sqr(&y2, &p->y);
-  curve25519_num_sub(&lhs, &y2, &p->z);
-  curve25519_num_mul(&rhs, &y2, &kCurveD);
-  curve25519_num_add(&rhs, &rhs, &p->z);
-  curve25519_num_inv(&rhs, &rhs);
-  curve25519_num_mul(&x2, &lhs, &rhs);
 
-  if (curve25519_num_is_zero(&x2)) {
+  /* num = (y^2 - 1) */
+  curve25519_num_sqr(&y2, &p->y);
+  curve25519_num_sub(&num, &y2, &p->z);
+
+  /* denom = (d y^2 + 1) */
+  curve25519_num_mul(&denom, &y2, &kCurveD);
+  curve25519_num_add(&denom, &denom, &p->z);
+
+  if (curve25519_num_is_zero(&num)) {
     if (is_odd)
       return -1;
 
@@ -49,17 +65,60 @@ int curve25519_ed_point_from_bin(curve25519_ed_point_t* p,
     return 0;
   }
 
-  curve25519_num_sqrt(&p->x, &x2);
-  curve25519_num_sqr(&lhs, &p->x);
-
-  curve25519_num_normalize(&x2);
-  curve25519_num_normalize(&lhs);
-  if (curve25519_num_cmp(&x2, &lhs) != 0)
+  if (0 != curve25519_ed__unpack(&p->x, &num, &denom))
     return -1;
 
   is_odd ^= curve25519_num_is_odd(&p->x);
   if (is_odd)
-    curve25519_num_sub(&p->x, &p->t, &p->x);
+    curve25519_num_neg(&p->x);
+
+  return 0;
+}
+
+
+int curve25519_ed__unpack(curve25519_num_t* out, const curve25519_num_t* num,
+                          const curve25519_num_t* denom) {
+  /* From: https://ed25519.cr.yp.to/ed25519-20110926.pdf
+   *
+   * beta = uv^3 (uv^7)^((q - 5) / 8)
+   * alpha = +/- beta^2
+   */
+
+  curve25519_num_t uv7;
+  curve25519_num_t pow;
+
+  curve25519_num_sqr(out, denom);
+  curve25519_num_mul(out, out, denom);
+  curve25519_num_mul(out, out, num);
+
+  curve25519_num_sqr(&uv7, denom);
+  curve25519_num_sqr(&uv7, &uv7);
+  curve25519_num_mul(&uv7, &uv7, out);
+
+
+  /* Behold, very naive exponentiation. Result = out */
+  curve25519_num_copy(&pow, &kCurvePm5d8);
+
+  /* TODO(indutny): `is_zero` is slow */
+  for (; !curve25519_num_is_zero(&pow); curve25519_num_sqr(&uv7, &uv7)) {
+    if (curve25519_num_is_odd(&pow))
+      curve25519_num_mul(out, out, &uv7);
+    curve25519_num_shr(&pow, 1);
+  }
+
+  /* beta2 = pow */
+  curve25519_num_sqr(&pow, out);
+
+  /* beta2 * u = +/- v */
+  curve25519_num_mul(&pow, &pow, num);
+
+  if (curve25519_num_cmp(&pow, denom) == 0)
+    return 0;
+
+  curve25519_num_neg(out);
+  curve25519_num_neg(&pow);
+  if (curve25519_num_cmp(&pow, denom) != 0)
+    return -1;
 
   return 0;
 }

@@ -534,11 +534,7 @@ void curve25519_num_sqr(curve25519_num_t* out, const curve25519_num_t* num) {
 }
 
 
-void curve25519_num_sqrt(curve25519_num_t* out, const curve25519_num_t* num) {
-}
-
-
-static void curve25519_num__shr(curve25519_num_t* num, uint8_t shift) {
+void curve25519_num_shr(curve25519_num_t* num, uint8_t shift) {
   const uint64_t* nlimbs = num->limbs;
 
   __asm__ __volatile__ (
@@ -588,16 +584,16 @@ static void curve25519_num__shift_both(curve25519_num_t* num,
   if (shift_num == 0)
     return;
 
-  curve25519_num__shr(num, shift_num);
+  curve25519_num_shr(num, shift_num);
 
   for (;;) {
     uint8_t shift_t = curve25519_num__tzcnt(t);
     if (shift_t >= shift_num) {
-      curve25519_num__shr(t, shift_num);
+      curve25519_num_shr(t, shift_num);
       break;
     }
 
-    curve25519_num__shr(t, shift_t);
+    curve25519_num_shr(t, shift_t);
     shift_num -= shift_t;
     curve25519_num_add(t, t, &kPrime);
   }
@@ -748,6 +744,11 @@ void curve25519_num_one(curve25519_num_t* out) {
 
 void curve25519_num_zero(curve25519_num_t* out) {
   memset(out, 0, sizeof(*out));
+}
+
+
+void curve25519_num_neg(curve25519_num_t* out) {
+  curve25519_num_sub(out, &kZero, out);
 }
 
 
