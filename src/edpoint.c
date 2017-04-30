@@ -217,4 +217,9 @@ void curve25519_ed_point_normalize(curve25519_ed_point_t* out) {
 void curve25519_ed_point_init_ex(curve25519_ed_point_t* p, const uint8_t x[32],
                                  const uint8_t y[32], const uint8_t z[32],
                                  const uint8_t t[32]) {
+  curve25519_num_from_bin(&p->x, x);
+  curve25519_num_from_bin(&p->y, y);
+  curve25519_num_from_bin(&p->z, z);
+  curve25519_num_from_bin(&p->t, t);
+  p->normalized = curve25519_num_is_one(&p->z);
 }
