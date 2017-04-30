@@ -22,6 +22,11 @@ void curve25519_ed_point_to_bin(uint8_t bin[32],
 void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
                              const curve25519_ed_point_t* p);
 
+/* NOTE: any two points may be the same */
+void curve25519_ed_point_add(curve25519_ed_point_t* out,
+                             const curve25519_ed_point_t* p1,
+                             const curve25519_ed_point_t* p2);
+
 void curve25519_ed_point_normalize(curve25519_ed_point_t* out);
 
 /* For tests */

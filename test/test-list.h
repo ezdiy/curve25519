@@ -13,5 +13,6 @@
     V(point_normalize)                                                        \
     V(ed_point_unpack)                                                        \
     V(ed_point_dbl)                                                           \
+    V(ed_point_add)                                                           \
 
 #endif  /* TEST_TEST_LIST_H_ */

@@ -58,6 +58,7 @@
       "test/test-point-normalize.c",
       "test/test-ed-point-unpack.c",
       "test/test-ed-point-dbl.c",
+      "test/test-ed-point-add.c",
     ],
   }],
 }

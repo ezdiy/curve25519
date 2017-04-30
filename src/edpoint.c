@@ -186,6 +186,61 @@ void curve25519_ed_point_dbl(curve25519_ed_point_t* out,
     curve25519_num_mul(&out->t, &e, &h);
     curve25519_num_mul(&out->z, &f, &g);
   }
+
+  out->normalized = 0;
+}
+
+
+void curve25519_ed_point_add(curve25519_ed_point_t* out,
+                             const curve25519_ed_point_t* p1,
+                             const curve25519_ed_point_t* p2) {
+  curve25519_num_t a;
+  curve25519_num_t b;
+  curve25519_num_t c;
+  curve25519_num_t d;
+  curve25519_num_t e;
+  curve25519_num_t f;
+  curve25519_num_t g;
+  curve25519_num_t h;
+
+  if (p1->normalized && !p2->normalized) {
+    /* Re-order to get to `p2->normalized` */
+    curve25519_ed_point_add(out, p2, p1);
+    return;
+  }
+
+  curve25519_num_add(&a, &p2->y, &p2->x);
+  curve25519_num_sub(&c, &p1->y, &p1->x);
+  curve25519_num_mul(&a, &a, &c);
+
+  curve25519_num_sub(&b, &p2->y, &p2->x);
+  curve25519_num_add(&c, &p1->y, &p1->x);
+  curve25519_num_mul(&b, &b, &c);
+
+  curve25519_num_mul(&c, &p2->t, &kTwo);
+  curve25519_num_mul(&d, &p1->t, &kTwo);
+
+  if (p1->normalized && p2->normalized) {
+    /* http://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html#addition-mmadd-2008-hwcd-4 */
+  } else if (p2->normalized) {
+    /* http://hyperelliptic.org/EFD/g1p/auto-twisted-extended-1.html#addition-madd-2008-hwcd-4 */
+    curve25519_num_mul(&c, &c, &p1->z);
+  } else {
+    curve25519_num_mul(&c, &c, &p1->z);
+    curve25519_num_mul(&d, &d, &p2->z);
+  }
+
+  curve25519_num_add(&e, &d, &c);
+  curve25519_num_sub(&f, &b, &a);
+  curve25519_num_add(&g, &b, &a);
+  curve25519_num_sub(&h, &d, &c);
+
+  curve25519_num_mul(&out->x, &e, &f);
+  curve25519_num_mul(&out->y, &g, &h);
+  curve25519_num_mul(&out->t, &e, &h);
+  curve25519_num_mul(&out->z, &f, &g);
+
+  out->normalized = 0;
 }
 
 
